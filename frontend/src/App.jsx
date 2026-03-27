@@ -7,10 +7,20 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import CandidateDashboard from './pages/candidate/CandidateDashboard';
-import RecruiterDashboard from './pages/recruiter/RecruiterDashboard';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+
+// Dashboards
+import CandidateDashboard from './pages/candidate/CandidateDashboard';
+import RecruiterDashboard from './pages/recruiter/RecruiterDashboard';
+
+// Candidate Operational Nodes
+import BrowseJobs from './pages/candidate/BrowseJobs';
+import MyApplications from './pages/candidate/MyApplications';
+
+// Recruiter Control Nodes
+import ManageJobs from './pages/recruiter/ManageJobs';
+import ViewApplications from './pages/recruiter/ViewApplications';
 
 import ModuleInitialization from './components/ModuleInitialization';
 
@@ -27,7 +37,7 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
-            {/* Candidate Routes */}
+            {/* Candidate Internal Routing */}
             <Route
               path="/candidate/dashboard"
               element={
@@ -40,7 +50,7 @@ function App() {
               path="/candidate/jobs"
               element={
                 <ProtectedRoute allowedRoles={['candidate']}>
-                  <ModuleInitialization title="Browse Jobs" description="Connecting you to the next generation of career-defining opportunities." />
+                  <BrowseJobs />
                 </ProtectedRoute>
               }
             />
@@ -48,7 +58,7 @@ function App() {
               path="/candidate/applications"
               element={
                 <ProtectedRoute allowedRoles={['candidate']}>
-                  <ModuleInitialization title="Application Tracking" description="Analyze and optimize your job submission lifecycle in real-time." />
+                  <MyApplications />
                 </ProtectedRoute>
               }
             />
@@ -61,7 +71,7 @@ function App() {
               }
             />
 
-            {/* Recruiter Routes */}
+            {/* Recruiter Tactical Routing */}
             <Route
               path="/recruiter/dashboard"
               element={
@@ -74,7 +84,7 @@ function App() {
               path="/recruiter/jobs"
               element={
                 <ProtectedRoute allowedRoles={['recruiter']}>
-                  <ModuleInitialization title="Job Management" description="Maintain total control over your elite engineering recruitment directives." />
+                  <ManageJobs />
                 </ProtectedRoute>
               }
             />
@@ -82,7 +92,8 @@ function App() {
               path="/recruiter/jobs/new"
               element={
                 <ProtectedRoute allowedRoles={['recruiter']}>
-                  <ModuleInitialization title="Directive Launchpad" description="Craft and deploy high-visibility job requirements to our elite talent pool." />
+                   {/* Points to ManageJobs as it contains the New Job modal */}
+                  <ManageJobs />
                 </ProtectedRoute>
               }
             />
@@ -90,7 +101,15 @@ function App() {
               path="/recruiter/applications"
               element={
                 <ProtectedRoute allowedRoles={['recruiter']}>
-                  <ModuleInitialization title="Talent Pipeline" description="Review and filter high-caliber candidate submissions with ease." />
+                   <ManageJobs /> {/* Recruiter views applications via job list links */}
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/recruiter/applications/:jobId"
+              element={
+                <ProtectedRoute allowedRoles={['recruiter']}>
+                   <ViewApplications />
                 </ProtectedRoute>
               }
             />
@@ -103,7 +122,7 @@ function App() {
               }
             />
 
-            {/* 404 Route */}
+            {/* 404 Node Protection */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>
