@@ -159,6 +159,7 @@ export const getJobApplications = async (req, res) => {
 
     const applications = await Application.find(query)
       .populate('candidate', 'name email phone profile')
+      .populate('job', 'title company location')
       .sort('-createdAt')
       .skip(skip)
       .limit(limitNum);
@@ -240,6 +241,7 @@ export const getApplicationById = async (req, res) => {
 export const updateApplicationStatus = async (req, res) => {
   try {
     const { status, note } = req.body;
+    console.log(`[Status Update Request] AppID: ${req.params.id} | New Status: ${status} | By: ${req.user.id}`);
 
     const application = await Application.findById(req.params.id);
 
@@ -270,9 +272,27 @@ export const updateApplicationStatus = async (req, res) => {
     await application.save();
 
     await application.populate([
-      { path: 'candidate', select: 'name email' },
-      { path: 'job', select: 'title company' }
+      { path: 'candidate', select: 'name email phone' },
+      { path: 'job', select: 'title company' },
+      { path: 'recruiter', select: 'name' }
     ]);
+
+    // Send Status Update Email
+    try {
+      if (application.candidate?.email) {
+        import('../utils/emailService.js').then(({ sendStatusUpdateEmail }) => {
+          sendStatusUpdateEmail(
+            application.candidate.email,
+            application.candidate.name,
+            application.job.title,
+            status,
+            application.recruiter?.name || 'Recruiter'
+          );
+        }).catch(err => console.error('Error importing email service:', err));
+      }
+    } catch (err) {
+       console.error('Email Notification Error:', err.message);
+    }
 
     res.status(200).json({
       success: true,

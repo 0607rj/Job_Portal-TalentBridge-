@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { jobAPI, applicationAPI } from '../../services/api';
 import { FiSearch, FiMapPin, FiBriefcase, FiDollarSign, FiFilter, FiSend, FiCheckCircle, FiInfo } from 'react-icons/fi';
 
@@ -218,8 +219,18 @@ const BrowseJobs = () => {
                       ></textarea>
                    </div>
 
-                   <p className="text-[10px] text-slate-400 font-medium flex gap-2 items-center">
-                     <FiCheckCircle className="text-green-500" /> System will automatically include your pre-qualified resume module from profile settings.
+                   <div className="bg-slate-50 p-6 rounded-3xl border border-dashed border-slate-200">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8] mb-2">Resume Module</p>
+                      <div className="flex items-center justify-between">
+                         <p className="text-xs text-slate-500 font-bold italic line-clamp-1">
+                           {import.meta.env.USER_RESUME || 'System will use your Profile Resume'}
+                         </p>
+                         <Link to="/profile" className="text-[10px] font-black text-blue-600 uppercase hover:underline">Edit Profile [→]</Link>
+                      </div>
+                   </div>
+
+                   <p className="text-[10px] text-slate-400 font-medium flex gap-2 items-center bg-blue-50/50 p-4 rounded-2xl">
+                     <FiCheckCircle className="text-blue-500" /> This request will automatically transmit your pre-qualified data and credentials to the hiring directive.
                    </p>
 
                    <button 

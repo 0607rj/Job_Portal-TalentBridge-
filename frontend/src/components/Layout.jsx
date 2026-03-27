@@ -5,14 +5,15 @@ import { useLocation } from 'react-router-dom';
 const Layout = ({ children }) => {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+  const isInterviewPage = location.pathname.startsWith('/interview/');
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      <Navbar />
-      <main className={`flex-grow flex flex-col ${isHomePage ? '' : 'pt-20'}`}>
+      {!isInterviewPage && <Navbar />}
+      <main className={`flex-grow flex flex-col ${isHomePage || isInterviewPage ? '' : 'pt-20'}`}>
         {children}
       </main>
-      <Footer />
+      {!isInterviewPage && <Footer />}
     </div>
   );
 };

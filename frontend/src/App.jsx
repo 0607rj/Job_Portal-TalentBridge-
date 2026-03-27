@@ -24,6 +24,7 @@ import MyApplications from './pages/candidate/MyApplications';
 // Recruiter Control Nodes
 import ManageJobs from './pages/recruiter/ManageJobs';
 import ViewApplications from './pages/recruiter/ViewApplications';
+import InterviewRoom from './pages/InterviewRoom';
 
 import ModuleInitialization from './components/ModuleInitialization';
 
@@ -114,7 +115,7 @@ function App() {
               path="/recruiter/applications"
               element={
                 <ProtectedRoute allowedRoles={['recruiter']}>
-                   <ManageJobs /> {/* Recruiter views applications via job list links */}
+                   <ViewApplications defaultJobId="all" />
                 </ProtectedRoute>
               }
             />
@@ -135,6 +136,14 @@ function App() {
               }
             />
 
+            <Route
+              path="/interview/:interviewId"
+              element={
+                <ProtectedRoute allowedRoles={['candidate', 'recruiter']}>
+                   <InterviewRoom />
+                </ProtectedRoute>
+              }
+            />
             {/* 404 Node Protection */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

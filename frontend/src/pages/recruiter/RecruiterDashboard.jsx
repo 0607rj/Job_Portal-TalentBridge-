@@ -181,14 +181,12 @@ const RecruiterDashboard = () => {
                          <p className="text-xs text-slate-500 mt-1">
                             {new Date(interview.scheduledDate).toLocaleDateString()} at {new Date(interview.scheduledDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                          </p>
-                         <a 
-                           href={interview.meetingLink} 
-                           target="_blank" 
-                           rel="noreferrer" 
+                         <Link 
+                           to={`/interview/${interview.application._id || interview.application}`} 
                            className="mt-4 w-full py-2 bg-blue-600 text-white text-xs font-bold rounded flex items-center justify-center gap-2 hover:bg-blue-700 transition-all"
                          >
                             Join Video Call
-                         </a>
+                         </Link>
                       </div>
                     ))}
                   </div>

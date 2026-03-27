@@ -16,12 +16,14 @@ const ManageJobs = () => {
     location: '',
     workMode: 'On-site',
     jobType: 'Full-time',
-    salary: { min: 0, max: 0, currency: 'USD' },
+    salary: { min: 0, max: 0, currency: 'INR' },
     applicationDeadline: '',
     requirements: '',
     responsibilities: '',
     skills: '',
     openings: 1,
+    isPaid: true,
+    duration: 'Permanent'
   });
 
   useEffect(() => {
@@ -54,9 +56,14 @@ const ManageJobs = () => {
     try {
       const processedData = {
         ...formData,
-        requirements: formData.requirements.split(',').map(s => s.trim()),
-        responsibilities: formData.responsibilities.split(',').map(s => s.trim()),
-        skills: formData.skills.split(',').map(s => s.trim()),
+        requirements: formData.requirements.split(',').map(s => s.trim()).filter(s => s !== ''),
+        responsibilities: formData.responsibilities.split(',').map(s => s.trim()).filter(s => s !== ''),
+        skills: formData.skills.split(',').map(s => s.trim()).filter(s => s !== ''),
+        salary: {
+          ...formData.salary,
+          min: Number(formData.salary.min),
+          max: Number(formData.salary.max)
+        }
       };
 
       await jobAPI.createJob(processedData);
@@ -64,8 +71,26 @@ const ManageJobs = () => {
       setShowModal(false);
       fetchMyJobs();
       fetchStats();
+      // Reset form
+      setFormData({
+        title: '',
+        category: 'Software Development',
+        description: '',
+        location: '',
+        workMode: 'On-site',
+        jobType: 'Full-time',
+        salary: { min: 0, max: 0, currency: 'INR' },
+        applicationDeadline: '',
+        requirements: '',
+        responsibilities: '',
+        skills: '',
+        openings: 1,
+        isPaid: true,
+        duration: 'Permanent'
+      });
     } catch (error) {
-      alert('Error: ' + error.response?.data?.message);
+       const msg = error.response?.data?.error || error.response?.data?.message || 'Check all fields are filled';
+       alert('Error: ' + msg);
     }
   };
 
@@ -122,7 +147,7 @@ const ManageJobs = () => {
           </div>
         )}
 
-        {/* Table */}
+        {/* Table/List */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
              <div className="w-10 h-10 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin mb-4"></div>
@@ -147,21 +172,22 @@ const ManageJobs = () => {
                             <div className="flex items-center gap-4 text-xs text-slate-500 mt-1">
                                <span className="flex items-center gap-1"><FiMapPin size={14} /> {job.location}</span>
                                <span className="flex items-center gap-1"><FiBriefcase size={14} /> {job.jobType}</span>
+                               <span className="flex items-center gap-1"><FiDollarSign size={14} /> {job.salary.min} - {job.salary.max} {job.salary.currency}</span>
                             </div>
                          </td>
                          <td className="px-8 py-6">
                             <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
-                               job.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                                job.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
                             }`}>
                                {job.status}
                             </span>
                          </td>
                          <td className="px-8 py-6">
                             <Link 
-                              to={`/recruiter/applications/${job._id}`}
-                              className="text-lg font-bold text-blue-600 hover:underline"
+                               to={`/recruiter/applications/${job._id}`}
+                               className="text-lg font-bold text-blue-600 hover:underline"
                             >
-                              {job.applicationsCount}
+                               {job.applicationsCount}
                             </Link>
                          </td>
                          <td className="px-8 py-6">
@@ -189,53 +215,163 @@ const ManageJobs = () => {
         )}
       </div>
 
-      {/* Post Job Modal */}
+      {/* Expanded Post Job Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
-          <div className="relative bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl overflow-y-auto p-8">
+          <div className="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl overflow-y-auto p-8">
              <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl font-bold text-slate-900">Post a New Job</h2>
-                <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 text-xl">×</button>
+                <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 text-xl font-bold p-2">×</button>
              </div>
 
-             <form className="space-y-6" onSubmit={handleSubmit}>
-                <div className="space-y-4">
-                   <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">Job Title</label>
-                      <input type="text" required placeholder="e.g. Senior Product Designer" className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+             <form className="space-y-8" onSubmit={handleSubmit}>
+                {/* Basic Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-slate-700 mb-2">Job Title / Role</label>
+                      <input type="text" required placeholder="e.g. Frontend Engineering Intern" className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
                         value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})}
                       />
                    </div>
-                   <div className="grid grid-cols-2 gap-4">
+                   
+                   <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-2">Category</label>
+                      <select className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                        value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}
+                      >
+                         <option value="Software Development">Software Development</option>
+                         <option value="Data Science">Data Science</option>
+                         <option value="Design">Design</option>
+                         <option value="Marketing">Marketing</option>
+                         <option value="Sales">Sales</option>
+                         <option value="HR">HR</option>
+                         <option value="Finance">Finance</option>
+                         <option value="Operations">Operations</option>
+                         <option value="Customer Support">Customer Support</option>
+                         <option value="Other">Other</option>
+                      </select>
+                   </div>
+
+                   <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-2">Job Type</label>
+                      <select className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                        value={formData.jobType} onChange={(e) => setFormData({...formData, jobType: e.target.value})}
+                      >
+                         <option value="Full-time">Full-time</option>
+                         <option value="Internship">Internship</option>
+                         <option value="Contract">Contract</option>
+                         <option value="Part-time">Part-time</option>
+                         <option value="Freelance">Freelance</option>
+                      </select>
+                   </div>
+                </div>
+
+                {/* Location & Mode */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Location</label>
+                        <input type="text" required placeholder="City name or Remote" className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                         value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Work Mode</label>
+                        <select className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                         value={formData.workMode} onChange={(e) => setFormData({...formData, workMode: e.target.value})}
+                        >
+                           <option value="On-site">On-site</option>
+                           <option value="Remote">Remote</option>
+                           <option value="Hybrid">Hybrid</option>
+                        </select>
+                    </div>
+                </div>
+
+                {/* Compensation & Duration */}
+                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div>
-                         <label className="block text-sm font-bold text-slate-700 mb-2">Location</label>
-                         <input type="text" required placeholder="City, Country" className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
-                           value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})}
+                         <label className="block text-sm font-bold text-slate-700 mb-2">Min Salary/Stipend</label>
+                         <input type="number" required className="w-full bg-white border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                           value={formData.salary.min} onChange={(e) => setFormData({...formData, salary: {...formData.salary, min: e.target.value}})}
                          />
                       </div>
                       <div>
-                         <label className="block text-sm font-bold text-slate-700 mb-2">Work Mode</label>
-                         <select className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
-                           value={formData.workMode} onChange={(e) => setFormData({...formData, workMode: e.target.value})}
-                         >
-                            <option value="On-site">On-site</option>
-                            <option value="Remote">Remote</option>
-                            <option value="Hybrid">Hybrid</option>
-                         </select>
+                         <label className="block text-sm font-bold text-slate-700 mb-2">Max Salary/Stipend</label>
+                         <input type="number" required className="w-full bg-white border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                           value={formData.salary.max} onChange={(e) => setFormData({...formData, salary: {...formData.salary, max: e.target.value}})}
+                         />
                       </div>
+                      <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-2">Paid/Unpaid?</label>
+                          <select className="w-full bg-white border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                            value={formData.isPaid} onChange={(e) => setFormData({...formData, isPaid: e.target.value === 'true'})}
+                          >
+                             <option value="true">Paid</option>
+                             <option value="false">Unpaid</option>
+                          </select>
+                      </div>
+                      {formData.jobType === 'Internship' && (
+                         <div className="md:col-span-3">
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Internship Duration</label>
+                            <input type="text" placeholder="e.g. 3 Months, 6 Months" className="w-full bg-white border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                              value={formData.duration} onChange={(e) => setFormData({...formData, duration: e.target.value})}
+                            />
+                         </div>
+                      )}
                    </div>
+                </div>
+
+                {/* Details */}
+                <div className="space-y-6">
                    <div>
                       <label className="block text-sm font-bold text-slate-700 mb-2">Job Description</label>
-                      <textarea required placeholder="What are you looking for?" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 min-h-[150px] focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" 
+                      <textarea required placeholder="Briefly describe the role..." className="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 min-h-[100px] focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" 
                         value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      />
+                   </div>
+                   <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-2">Requirements (Comma separated)</label>
+                      <textarea required placeholder="HTML, CSS, JavaScript, React..." className="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 min-h-[80px] focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" 
+                        value={formData.requirements} onChange={(e) => setFormData({...formData, requirements: e.target.value})}
+                      />
+                   </div>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                         <label className="block text-sm font-bold text-slate-700 mb-2">Responsibilities (Comma separated)</label>
+                         <textarea required placeholder="Develop UI, Review code..." className="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 min-h-[80px] focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" 
+                           value={formData.responsibilities} onChange={(e) => setFormData({...formData, responsibilities: e.target.value})}
+                         />
+                      </div>
+                      <div>
+                         <label className="block text-sm font-bold text-slate-700 mb-2">Key Skills (Comma separated)</label>
+                         <textarea required placeholder="Teamwork, Problem Solving..." className="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 min-h-[80px] focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" 
+                           value={formData.skills} onChange={(e) => setFormData({...formData, skills: e.target.value})}
+                         />
+                      </div>
+                   </div>
+                </div>
+
+                {/* Deadlines & Openings */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                   <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-2">Application Deadline</label>
+                      <input type="date" required className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                        value={formData.applicationDeadline} onChange={(e) => setFormData({...formData, applicationDeadline: e.target.value})}
+                      />
+                   </div>
+                   <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-2">Total Openings</label>
+                      <input type="number" required min="1" className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                        value={formData.openings} onChange={(e) => setFormData({...formData, openings: e.target.value})}
                       />
                    </div>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100">
-                   <button type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
-                     Post Job Now <FiSend />
+                <div className="pt-8 border-t border-slate-100 flex gap-4">
+                   <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-4 text-slate-500 font-bold rounded-xl hover:bg-slate-100 transition-all">Cancel</button>
+                   <button type="submit" className="flex-[2] py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
+                     Publish Posting <FiSend />
                    </button>
                 </div>
              </form>
@@ -244,6 +380,6 @@ const ManageJobs = () => {
       )}
     </div>
   );
-};
+};;
 
 export default ManageJobs;

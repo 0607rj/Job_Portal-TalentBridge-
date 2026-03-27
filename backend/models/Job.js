@@ -41,15 +41,15 @@ const jobSchema = new mongoose.Schema({
   salary: {
     min: {
       type: Number,
-      required: [true, 'Please provide minimum salary']
+      required: [true, 'Please provide minimum salary/stipend']
     },
     max: {
       type: Number,
-      required: [true, 'Please provide maximum salary']
+      required: [true, 'Please provide maximum salary/stipend']
     },
     currency: {
       type: String,
-      default: 'USD'
+      default: 'INR'
     }
   },
   location: {
@@ -60,6 +60,14 @@ const jobSchema = new mongoose.Schema({
     type: String,
     enum: ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance'],
     default: 'Full-time'
+  },
+  isPaid: {
+    type: Boolean,
+    default: true
+  },
+  duration: {
+    type: String,
+    default: 'Permanent'
   },
   workMode: {
     type: String,

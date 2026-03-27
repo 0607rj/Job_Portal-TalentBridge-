@@ -31,30 +31,29 @@ const authLimiter = rateLimit({
   message: { success: false, message: 'Too many requests. Please try again in 15 minutes.' }
 });
 
-// --- Security Middleware Layer ---
-app.use(helmet());
-app.use(express.json({ limit: '10kb' }));
-
 // Dynamic CORS for multiple dev ports
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:3000'
-].filter(Boolean); // Remote null/undefined nodes
+].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+      return callback(new Error('CORS Policy block'), false);
     }
     return callback(null, true);
   },
   credentials: true
 }));
+
+// --- Security & Body Parsing Layer ---
+app.use(helmet());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(hpp());
 app.use(xss());
 

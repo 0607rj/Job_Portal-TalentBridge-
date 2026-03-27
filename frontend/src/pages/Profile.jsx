@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
 import { FiUser, FiMail, FiPhone, FiMapPin, FiBriefcase, FiGlobe, FiFileText, FiSave, FiLink, FiCamera } from 'react-icons/fi';
+import { compressImage } from '../utils/imageCompression';
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
@@ -60,10 +61,7 @@ const Profile = () => {
       };
 
       const response = await authAPI.updateProfile(dataToSubmit);
-      
-      // Update global context state
       updateUser(response.data.user);
-      
       alert('Your profile has been updated successfully!');
     } catch (error) {
       alert('Update Failed: ' + (error.response?.data?.message || error.message));
@@ -73,112 +71,116 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 lg:p-8 pt-24 font-sans">
+    <div className="min-h-screen bg-slate-50 p-4 lg:p-8 pt-24 font-sans text-slate-800">
       <div className="max-w-4xl mx-auto">
         <div className="mb-10">
-          <h1 className="text-3xl font-bold text-slate-900">Edit Profile</h1>
-          <p className="text-slate-500 mt-2">Manage your personal information and account settings.</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Edit Profile</h1>
+          <p className="text-slate-500 mt-2 font-medium">Manage your personal information and account settings.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Sidebar: Profile Photo */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center">
-               <div className="relative inline-block mb-6">
-                  {profileData.avatar ? (
-                    <img src={profileData.avatar} alt="Profile" className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md" />
-                  ) : (
-                    <div className="w-32 h-32 bg-slate-100 rounded-full mx-auto flex items-center justify-center text-3xl font-bold text-slate-400 border-4 border-white shadow-sm">
-                      {user?.name?.[0] || 'U'}
-                    </div>
-                  )}
-                  <div className="absolute bottom-0 right-0 p-2 bg-blue-600 rounded-full text-white shadow-lg">
-                     <FiCamera size={16} />
-                  </div>
-               </div>
-               
-               <div className="text-left space-y-4">
-                  <div>
-                     <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Profile Photo URL</label>
-                     <input 
-                        type="url" 
-                        placeholder="Link to your photo..." 
-                        className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                        value={profileData.avatar}
-                        onChange={(e) => setProfileData({...profileData, avatar: e.target.value})}
-                     />
-                  </div>
-                  <p className="text-[10px] text-slate-400 italic">
-                    Paste a link to your image (Google Drive, Dropbox, or any public link).
-                  </p>
-               </div>
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-6 text-center">
+                <div className="relative inline-block mb-6">
+                   <div className="w-32 h-32 rounded-full ring-4 ring-white shadow-2xl overflow-hidden bg-slate-100 flex items-center justify-center">
+                      {profileData.avatar ? (
+                        <img src={profileData.avatar} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-3xl font-bold text-slate-400 capitalize">{user?.name?.[0] || 'U'}</span>
+                      )}
+                   </div>
+                   <label htmlFor="avatar-upload" className="absolute bottom-1 right-1 p-2.5 bg-blue-600 rounded-full text-white shadow-lg cursor-pointer hover:bg-black hover:scale-110 transition-all border-2 border-white">
+                      <FiCamera size={14} />
+                      <input 
+                        type="file" 
+                        id="avatar-upload" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                             const reader = new FileReader();
+                             reader.onloadend = async () => {
+                               // Compress image before storage to fix 413 error
+                               const compressed = await compressImage(reader.result, 800, 800, 0.7);
+                               setProfileData({...profileData, avatar: compressed});
+                             };
+                             reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                   </label>
+                </div>
+                
+                <div className="text-left space-y-4">
+                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 italic transition-all hover:bg-white hover:border-blue-100">
+                      <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-2">Module Status</p>
+                      <p className="text-xs font-bold text-slate-600">
+                        {profileData.avatar?.startsWith('data:') ? '✅ Secure Media Buffer Ready' : '❌ Use Gallery to Import'}
+                      </p>
+                   </div>
+                </div>
 
                <div className="mt-8 pt-6 border-t border-slate-100">
-                  <p className="text-sm font-bold text-slate-900">{user?.name}</p>
-                  <p className="text-xs text-slate-500 capitalize">{user?.role} Account</p>
+                  <p className="text-sm font-black text-slate-900 uppercase tracking-tighter">{user?.name}</p>
+                  <p className="text-[10px] text-blue-600 font-black uppercase tracking-widest mt-1 px-2 py-0.5 bg-blue-50 rounded inline-block">{user?.role} Tier</p>
                </div>
             </div>
           </div>
 
           {/* Main Info */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-               <h2 className="text-lg font-bold text-slate-900 mb-6">Personal Details</h2>
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-8">
+               <h2 className="text-lg font-black text-slate-900 mb-8 uppercase tracking-tight flex items-center gap-3">
+                  <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div> Personal Metadata
+               </h2>
                
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <div className="space-y-2">
-                     <label className="text-xs font-bold text-slate-600 uppercase">Full Name</label>
-                     <input 
-                        type="text" 
-                        required
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 outline-none transition-all font-medium"
-                        value={profileData.name}
-                        onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Full Name Node</label>
+                     <input type="text" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-50 outline-none transition-all font-bold text-sm"
+                        value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})}
                      />
                   </div>
                   <div className="space-y-2">
-                     <label className="text-xs font-bold text-slate-600 uppercase">Phone Number</label>
-                     <input 
-                        type="text" 
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 outline-none transition-all font-medium"
-                        value={profileData.phone}
-                        onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone Link</label>
+                     <input type="text" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-50 outline-none transition-all font-bold text-sm"
+                        value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
                      />
                   </div>
                   <div className="space-y-2">
-                     <label className="text-xs font-bold text-slate-600 uppercase">Email Address</label>
-                     <input 
-                        type="email" 
-                        disabled
-                        className="w-full p-3 bg-slate-200 border border-slate-200 rounded-xl text-slate-500 font-medium cursor-not-allowed"
+                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Registered Email</label>
+                     <input type="email" disabled className="w-full p-4 bg-slate-100 border border-slate-200 rounded-2xl text-slate-400 font-bold text-sm cursor-not-allowed italic"
                         value={profileData.email}
                      />
                   </div>
                   <div className="space-y-2">
-                     <label className="text-xs font-bold text-slate-600 uppercase">Location</label>
-                     <input 
-                        type="text" 
-                        placeholder="e.g. New York, USA"
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 outline-none transition-all font-medium"
-                        value={profileData.location}
-                        onChange={(e) => setProfileData({...profileData, location: e.target.value})}
-                     />
+                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Global Location</label>
+                     <div className="relative">
+                        <FiMapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                        <input type="text" className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-50 outline-none transition-all font-bold text-sm"
+                          value={profileData.location} onChange={(e) => setProfileData({...profileData, location: e.target.value})}
+                        />
+                     </div>
                   </div>
                </div>
 
                {user?.role === 'recruiter' ? (
                  <div className="space-y-6 pt-6 border-t border-slate-100">
-                    <h2 className="text-lg font-bold text-slate-900">Company Information</h2>
+                    <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
+                       <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div> Organization Vector
+                    </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                        <div className="space-y-2">
-                          <label className="text-xs font-bold text-slate-600 uppercase">Company Name</label>
-                          <input type="text" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 outline-none transition-all font-medium"
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Entity Name</label>
+                          <input type="text" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-blue-600 outline-none transition-all font-bold text-sm"
                             value={profileData.company.name} onChange={(e) => setProfileData({...profileData, company: {...profileData.company, name: e.target.value}})}
                           />
                        </div>
                        <div className="space-y-2">
-                          <label className="text-xs font-bold text-slate-600 uppercase">Website URL</label>
-                          <input type="url" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 outline-none transition-all font-medium"
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Company Protocol (URL)</label>
+                          <input type="url" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-blue-600 outline-none transition-all font-bold text-sm"
                             value={profileData.company.website} onChange={(e) => setProfileData({...profileData, company: {...profileData.company, website: e.target.value}})}
                           />
                        </div>
@@ -186,46 +188,53 @@ const Profile = () => {
                  </div>
                ) : (
                  <div className="space-y-6 pt-6 border-t border-slate-100">
-                    <h2 className="text-lg font-bold text-slate-900">Professional Details</h2>
-                    <div className="space-y-4">
+                    <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
+                       <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div> Career Core
+                    </h2>
+                    <div className="space-y-6">
                        <div className="space-y-2">
-                          <label className="text-xs font-bold text-slate-600 uppercase">Resume Link (PDF preferred)</label>
-                          <div className="relative">
-                            <FiLink className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input 
-                              type="url" 
-                              placeholder="Link to your resume..." 
-                              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 outline-none transition-all font-medium"
-                              value={profileData.resume}
-                              onChange={(e) => setProfileData({...profileData, resume: e.target.value})}
-                            />
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Professional Identity (Resume)</label>
+                          <div className="relative group">
+                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400">
+                               <FiFileText />
+                             </div>
+                             <input type="file" id="resume-upload" className="hidden" accept=".pdf,.doc,.docx"
+                                onChange={(e) => {
+                                  const file = e.target.files[0];
+                                  if (file) {
+                                    if (file.size > 10 * 1024 * 1024) return alert('File too large. Max 10MB.');
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => setProfileData({...profileData, resume: reader.result});
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                             />
+                             <label htmlFor="resume-upload" className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl cursor-pointer hover:bg-white hover:border-blue-600 transition-all font-bold text-sm flex items-center">
+                                {profileData.resume?.startsWith('data:') ? '✅ Secure Document Buffered' : (profileData.resume || 'Select resume module (PDF/Word)...')}
+                             </label>
                           </div>
                        </div>
                        <div className="space-y-2">
-                          <label className="text-xs font-bold text-slate-600 uppercase">Your Skills (Comma separated)</label>
-                          <input type="text" placeholder="e.g. Photoshop, JavaScript, Marketing" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 outline-none transition-all font-medium"
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Skill Matrix</label>
+                          <input type="text" placeholder="e.g. React, Docker, Python" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-blue-600 outline-none transition-all font-bold text-sm"
                             value={profileData.skills} onChange={(e) => setProfileData({...profileData, skills: e.target.value})}
                           />
                        </div>
                        <div className="space-y-2">
-                          <label className="text-xs font-bold text-slate-600 uppercase">About You (Bio)</label>
-                          <textarea className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl min-h-[120px] focus:bg-white focus:border-blue-600 outline-none transition-all font-medium text-sm leading-relaxed"
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Biographical Overview</label>
+                          <textarea className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl min-h-[140px] focus:bg-white focus:border-blue-600 outline-none transition-all font-bold text-sm leading-relaxed"
                             value={profileData.bio} onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
-                            placeholder="Write a short summary about yourself..."
+                            placeholder="Briefly state your professional objective..."
                           ></textarea>
                        </div>
                     </div>
                  </div>
                )}
 
-               <div className="mt-10">
-                  <button 
-                    type="submit" 
-                    disabled={loading}
-                    className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 group"
-                  >
+               <div className="mt-12">
+                  <button type="submit" disabled={loading} className="w-full py-5 bg-slate-900 text-white font-black rounded-2xl shadow-2xl hover:bg-blue-600 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 group">
                     {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : (
-                      <>Save Changes <FiSave className="group-hover:translate-x-1 transition-transform" /></>
+                      <>Commit Updates <FiSave className="group-hover:rotate-12 transition-transform" size={20}/></>
                     )}
                   </button>
                </div>

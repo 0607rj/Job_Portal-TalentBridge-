@@ -151,9 +151,9 @@ const CandidateDashboard = () => {
                         <p className="font-bold text-sm">{new Date(interviews[0].scheduledDate).toLocaleDateString()}</p>
                         <p className="text-xs text-indigo-100">{new Date(interviews[0].scheduledDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                      </div>
-                     <a href={interviews[0].meetingLink} target="_blank" rel="noreferrer" className="w-full py-3 bg-white text-indigo-700 font-bold rounded-lg text-center block text-sm shadow-lg hover:bg-slate-50 transition-all">
+                     <Link to={`/interview/${interviews[0].application?._id || interviews[0].application}`} className="w-full py-3 bg-white text-indigo-700 font-bold rounded-lg text-center block text-sm shadow-lg hover:bg-slate-50 transition-all">
                         Join Interview
-                     </a>
+                     </Link>
                   </div>
                 ) : (
                   <div className="relative z-10">

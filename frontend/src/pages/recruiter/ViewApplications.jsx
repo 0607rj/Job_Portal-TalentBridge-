@@ -3,8 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { applicationAPI, jobAPI, interviewAPI } from '../../services/api';
 import { FiUser, FiFileText, FiCalendar, FiCheckCircle, FiXCircle, FiClock, FiMail, FiPhone, FiExternalLink, FiSearch, FiFilter } from 'react-icons/fi';
 
-const ViewApplications = () => {
-  const { jobId } = useParams();
+const ViewApplications = ({ defaultJobId }) => {
+  const { jobId: urlId } = useParams();
+  const jobId = urlId || defaultJobId;
   const [job, setJob] = useState(null);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +44,7 @@ const ViewApplications = () => {
       alert(`Application marked as ${status}`);
       fetchJobAndApplications();
     } catch (err) {
-      alert('Error updating status');
+      alert('Error updating status: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -51,7 +52,7 @@ const ViewApplications = () => {
     e.preventDefault();
     try {
       const scheduledDate = new Date(`${interviewData.date}T${interviewData.time}`);
-      const meetingLink = `https://meet.jit.si/TalentBridge-Meeting-${selectedApp._id}`;
+      const meetingLink = `${window.location.origin}/interview/${selectedApp._id}`;
       
       await interviewAPI.scheduleInterview({
         applicationId: selectedApp._id,
@@ -88,7 +89,7 @@ const ViewApplications = () => {
               <Link to="/recruiter/jobs" className="text-blue-600 text-sm font-bold flex items-center gap-2 mb-4 hover:underline">
                  ← Back to Job Postings
               </Link>
-              <h1 className="text-3xl font-bold text-slate-900">{jobId === 'all' ? 'All Applications' : `Applications for ${job?.title}`}</h1>
+              <h1 className="text-3xl font-bold text-slate-900">{jobId === 'all' ? 'All Candidates' : `Applications for ${job?.title}`}</h1>
               <p className="text-slate-500 mt-1">Review your candidates and move them to the next stage.</p>
            </div>
            
@@ -108,12 +109,21 @@ const ViewApplications = () => {
                     
                     {/* User Profile Info */}
                     <div className="flex items-start gap-6">
-                       <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-2xl font-bold text-slate-600">
-                          {app.candidate?.name?.[0]}
+                       <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-2xl font-bold text-slate-600 overflow-hidden">
+                          {app.candidate?.avatar ? (
+                            <img src={app.candidate.avatar} alt="" className="w-full h-full object-cover" />
+                          ) : app.candidate?.name?.[0]}
                        </div>
                        <div>
                           <h3 className="text-xl font-bold text-slate-900">{app.candidate?.name}</h3>
-                          <p className="text-blue-600 font-bold text-xs uppercase tracking-widest mt-1">{app.status}</p>
+                          {jobId === 'all' && (
+                            <div className="mt-1 mb-2">
+                               <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-widest border border-blue-100">
+                                 Role: {app.job?.title || 'Unknown'}
+                               </span>
+                            </div>
+                          )}
+                          <p className="text-blue-600 font-bold text-[10px] uppercase tracking-widest">{app.status}</p>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 mt-4">
                              <div className="flex items-center gap-2 text-sm text-slate-500"><FiMail className="text-slate-300" /> {app.candidate?.email}</div>
                              <div className="flex items-center gap-2 text-sm text-slate-500"><FiPhone className="text-slate-300" /> {app.candidate?.phone || 'No phone'}</div>
@@ -131,6 +141,14 @@ const ViewApplications = () => {
                        )}
                        
                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleStatusUpdate(app._id, 'Under Review')}
+                            className={`p-3 rounded-xl border transition-all ${app.status === 'Under Review' ? 'bg-amber-50 border-amber-200 text-amber-600' : 'bg-white border-slate-100 text-slate-400 hover:text-amber-500 hover:bg-amber-50 hover:border-amber-100'}`}
+                            title="Under Review"
+                          >
+                             <FiClock size={20} />
+                          </button>
+
                           <button 
                             onClick={() => handleStatusUpdate(app._id, 'Shortlisted')}
                             className={`p-3 rounded-xl border transition-all ${app.status === 'Shortlisted' ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-white border-slate-100 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 hover:border-emerald-100'}`}
