@@ -36,12 +36,12 @@ const Register = () => {
     setError('');
 
     if (formData.password !== formData.confirmPassword) {
-      setError('The passwords you entered do not match.');
+      setError('Passwords do not match.');
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Security requirement: Password must be at least 6 characters.');
+      setError('Password must be at least 6 characters.');
       return;
     }
 
@@ -75,38 +75,36 @@ const Register = () => {
           navigate('/');
         }
       } else {
-        setError(result.message || 'We could not complete your registration at this time.');
+        setError(result.message || 'Registration failed. Please try again.');
       }
     } catch (err) {
-      setError('A system error occurred. Please attempt registration later.');
+      setError('Something went wrong. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 pt-28 pb-12">
-      <div className="w-full max-w-6xl grid lg:grid-cols-5 bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 pt-28 pb-12 font-sans">
+      <div className="w-full max-w-6xl grid lg:grid-cols-5 bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
         
-        {/* Left Side - Visual/Marketing (2 cols) */}
-        <div className="hidden lg:flex lg:col-span-2 flex-col justify-between p-12 bg-slate-900 text-white relative overflow-hidden">
+        {/* Left Side (2 cols) */}
+        <div className="hidden lg:flex lg:col-span-2 flex-col justify-between p-12 bg-slate-900 text-white relative">
           <img 
             src={authBg} 
-            alt="Corporate Environment" 
-            className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay"
+            alt="Office" 
+            className="absolute inset-0 w-full h-full object-cover opacity-50"
           />
-          <div className="absolute inset-0 bg-slate-900/60"></div>
-          <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none bg-[radial-gradient(circle_at_50%_50%,#3b82f6_0%,transparent_50%)]"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
           
           <div className="relative z-10">
-            <Link to="/" className="inline-flex items-center gap-2 mb-16">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black italic">T</div>
-              <span className="font-bold tracking-tight text-xl text-white">TalentBridge</span>
+            <Link to="/" className="flex items-center gap-2 mb-16">
+              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-bold text-xl">T</div>
+              <span className="font-bold text-2xl tracking-tight text-white">TalentBridge</span>
             </Link>
             
-            <h2 className="text-4xl font-black leading-tight mb-8">
-              Join the future of <br />
-              <span className="text-blue-500 italic">Professional</span> networking.
+            <h2 className="text-4xl font-bold leading-tight mb-8">
+              Start your professional journey today.
             </h2>
             
             <div className="space-y-8">
@@ -115,8 +113,8 @@ const Register = () => {
                   <FiBriefcase className="text-blue-500" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-100 italic">Recruiters</h4>
-                  <p className="text-slate-400 text-sm leading-relaxed">Access a vetted pool of top-tier talent and scale your engineering teams with precision.</p>
+                  <h4 className="font-bold text-slate-100">For Recruiters</h4>
+                  <p className="text-slate-400 text-sm leading-relaxed">Find top talent and grow your team with ease. Post jobs and manage applications in one place.</p>
                 </div>
               </div>
               
@@ -125,8 +123,8 @@ const Register = () => {
                   <FiUser className="text-indigo-500" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-100 italic">Candidates</h4>
-                  <p className="text-slate-400 text-sm leading-relaxed">Get discovered by the world's most innovative tech companies and land your dream role.</p>
+                  <h4 className="font-bold text-slate-100">For Candidates</h4>
+                  <p className="text-slate-400 text-sm leading-relaxed">Discover exciting job opportunities and get hired by top companies that match your goals.</p>
                 </div>
               </div>
             </div>
@@ -134,41 +132,36 @@ const Register = () => {
 
           <div className="relative z-10 pt-12 border-t border-slate-800">
             <div className="flex items-center gap-4">
-              <div className="flex -space-x-3">
-                {[1,2,3].map(i => (
-                  <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-900 bg-slate-700"></div>
-                ))}
-              </div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Join 120k+ members</p>
+              <p className="text-sm font-semibold text-slate-400">Join thousands of professionals already on TalentBridge.</p>
             </div>
           </div>
         </div>
 
         {/* Right Side - Form (3 cols) */}
         <div className="lg:col-span-3 p-8 lg:p-14 bg-white overflow-y-auto max-h-[90vh] custom-scrollbar">
-          <div className="mb-10 text-center lg:text-left">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight lg:hidden mb-8 flex items-center justify-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center font-black italic text-sm">T</div>
+          <div className="mb-10 lg:text-left">
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight lg:hidden mb-8 flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-sm">T</div>
               TalentBridge
             </h1>
-            <h3 className="text-3xl font-black text-slate-900 tracking-tight mb-2 italic">Forge Your Identity</h3>
+            <h3 className="text-3xl font-bold text-slate-900 mb-2">Create Account</h3>
             <p className="text-slate-500 font-medium">
-              Already authorized?{' '}
-              <Link to="/login" className="text-blue-600 font-bold hover:underline">Sign in to console</Link>
+              Already have an account?{' '}
+              <Link to="/login" className="text-blue-600 font-bold hover:underline">Sign In</Link>
             </p>
           </div>
 
           {/* Role Switcher */}
-          <div className="flex p-1.5 bg-slate-50 rounded-2xl mb-10 border border-slate-100">
+          <div className="flex p-1 bg-slate-50 rounded-2xl mb-10 border border-slate-200">
             <button
               onClick={() => setFormData({ ...formData, role: 'candidate' })}
-              className={`flex-1 py-3 px-4 rounded-xl text-sm font-black tracking-widest transition-all ${formData.role === 'candidate' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all ${formData.role === 'candidate' ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
             >
               CANDIDATE
             </button>
             <button
               onClick={() => setFormData({ ...formData, role: 'recruiter' })}
-              className={`flex-1 py-3 px-4 rounded-xl text-sm font-black tracking-widest transition-all ${formData.role === 'recruiter' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all ${formData.role === 'recruiter' ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
             >
               RECRUITER
             </button>
@@ -176,17 +169,17 @@ const Register = () => {
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl animate-in fade-in duration-300">
-                <p className="text-sm font-bold text-rose-600">{error}</p>
+              <div className="p-4 bg-red-50 border border-red-100 rounded-xl">
+                <p className="text-sm font-semibold text-red-600">{error}</p>
               </div>
             )}
 
             <div className="grid md:grid-cols-2 gap-6">
               {/* Full Name */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Identity Name</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-blue-600 transition-colors">
+                <label className="text-sm font-bold text-slate-700 ml-1">Full Name</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                     <FiUser className="w-5 h-5" />
                   </div>
                   <input
@@ -194,17 +187,17 @@ const Register = () => {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium placeholder:text-slate-400"
-                    placeholder="John Doe"
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-50 transition-all outline-none font-medium placeholder:font-normal"
+                    placeholder="e.g. John Doe"
                   />
                 </div>
               </div>
 
               {/* Email */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Work Email</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-blue-600 transition-colors">
+                <label className="text-sm font-bold text-slate-700 ml-1">Email Address</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                     <FiMail className="w-5 h-5" />
                   </div>
                   <input
@@ -213,17 +206,17 @@ const Register = () => {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium placeholder:text-slate-400"
-                    placeholder="name@company.com"
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-50 transition-all outline-none font-medium placeholder:font-normal"
+                    placeholder="e.g. john@example.com"
                   />
                 </div>
               </div>
 
               {/* Phone */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Contact Link</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-blue-600 transition-colors">
+                <label className="text-sm font-bold text-slate-700 ml-1">Phone Number</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                     <FiPhone className="w-5 h-5" />
                   </div>
                   <input
@@ -231,17 +224,17 @@ const Register = () => {
                     type="tel"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium placeholder:text-slate-400"
-                    placeholder="+1 (555) 000-0000"
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-50 transition-all outline-none font-medium placeholder:font-normal"
+                    placeholder="e.g. +1 234 567 890"
                   />
                 </div>
               </div>
 
               {/* Password */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Security Key</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-blue-600 transition-colors">
+                <label className="text-sm font-bold text-slate-700 ml-1">Password</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                     <FiLock className="w-5 h-5" />
                   </div>
                   <input
@@ -250,13 +243,13 @@ const Register = () => {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium placeholder:text-slate-400"
-                    placeholder="Create a key"
+                    className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-50 transition-all outline-none font-medium placeholder:font-normal"
+                    placeholder="Create a password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-900 transition-colors"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                   >
                     {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                   </button>
@@ -266,11 +259,11 @@ const Register = () => {
 
             {/* Recruiter Specific Fields */}
             {formData.role === 'recruiter' && (
-              <div className="grid md:grid-cols-2 gap-6 p-6 bg-blue-50/50 rounded-3xl border border-blue-100 animate-in fade-in slide-in-from-top-4 duration-500">
+              <div className="grid md:grid-cols-2 gap-6 p-6 bg-blue-50 rounded-2xl border border-blue-100">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 ml-1">Entity Name</label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-blue-400">
+                  <label className="text-sm font-bold text-blue-700 ml-1">Company Name</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center text-blue-400">
                       <FiBriefcase className="w-5 h-5" />
                     </div>
                     <input
@@ -278,16 +271,16 @@ const Register = () => {
                       required
                       value={formData.companyName}
                       onChange={handleChange}
-                      className="w-full pl-12 pr-4 py-3.5 bg-white border border-blue-200 rounded-2xl focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium placeholder:text-slate-300"
-                      placeholder="Organization Ltd."
+                      className="w-full pl-12 pr-4 py-3.5 bg-white border border-blue-200 rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-50 outline-none transition-all font-medium placeholder:font-normal"
+                      placeholder="e.g. TalentBridge Inc."
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 ml-1">Global Address</label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-blue-400">
+                  <label className="text-sm font-bold text-blue-700 ml-1">Company Website</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center text-blue-400">
                       <FiGlobe className="w-5 h-5" />
                     </div>
                     <input
@@ -295,16 +288,16 @@ const Register = () => {
                       type="url"
                       value={formData.companyWebsite}
                       onChange={handleChange}
-                      className="w-full pl-12 pr-4 py-3.5 bg-white border border-blue-200 rounded-2xl focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium placeholder:text-slate-300"
-                      placeholder="https://console.io"
+                      className="w-full pl-12 pr-4 py-3.5 bg-white border border-blue-200 rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-50 outline-none transition-all font-medium placeholder:font-normal"
+                      placeholder="e.g. https://example.com"
                     />
                   </div>
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 ml-1">Primary Node Location</label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-blue-400">
+                  <label className="text-sm font-bold text-blue-700 ml-1">Company Location</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center text-blue-400">
                       <FiMapPin className="w-5 h-5" />
                     </div>
                     <input
@@ -312,18 +305,18 @@ const Register = () => {
                       required
                       value={formData.companyLocation}
                       onChange={handleChange}
-                      className="w-full pl-12 pr-4 py-3.5 bg-white border border-blue-200 rounded-2xl focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium placeholder:text-slate-300"
-                      placeholder="HQ Location, Earth"
+                      className="w-full pl-12 pr-4 py-3.5 bg-white border border-blue-200 rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-50 outline-none transition-all font-medium placeholder:font-normal"
+                      placeholder="e.g. London, UK"
                     />
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Confirm Security Key</label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-blue-600 transition-colors">
+            <div className="space-y-2 text-left">
+              <label className="text-sm font-bold text-slate-700 ml-1">Confirm Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                   <FiLock className="w-5 h-5" />
                 </div>
                 <input
@@ -332,8 +325,8 @@ const Register = () => {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium placeholder:text-slate-400"
-                  placeholder="Repeat key"
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-50 transition-all outline-none font-medium placeholder:font-normal"
+                  placeholder="Confirm your password"
                 />
               </div>
             </div>
@@ -343,23 +336,23 @@ const Register = () => {
                 id="terms"
                 type="checkbox"
                 required
-                className="w-5 h-5 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
               />
-              <label htmlFor="terms" className="text-sm font-bold text-slate-500 cursor-pointer select-none">
-                I agree to the <a href="#" className="text-blue-600 hover:underline">Consortium agreement</a> and <a href="#" className="text-blue-600 hover:underline">Privacy regulations</a>
+              <label htmlFor="terms" className="text-sm font-medium text-slate-500 cursor-pointer">
+                I agree to the <a href="#" className="text-blue-600 font-bold hover:underline">Terms of Service</a> and <a href="#" className="text-blue-600 font-bold hover:underline">Privacy Policy</a>
               </label>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-5 bg-slate-900 text-white font-black rounded-[2rem] shadow-2xl shadow-slate-900/20 hover:bg-black transition-all hover:scale-[1.01] disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2 mt-4 uppercase tracking-widest text-sm"
+              className="w-full py-5 bg-slate-900 text-white font-bold rounded-2xl shadow-lg hover:bg-black transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-4"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               ) : (
                 <>
-                  Initialize Account <FiArrowRight />
+                  Create Account <FiArrowRight />
                 </>
               )}
             </button>

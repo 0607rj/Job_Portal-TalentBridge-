@@ -41,55 +41,54 @@ const Login = () => {
           navigate('/');
         }
       } else {
-        setError(result.message || 'The credentials you entered do not match our records.');
+        setError(result.message || 'Invalid email or password. Please try again.');
       }
     } catch (err) {
-      setError('A system error occurred. Please try again later.');
+      setError('Something went wrong. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 pt-24">
-      <div className="w-full max-w-5xl grid lg:grid-cols-2 bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100">
-        {/* Left Side - Visual/Marketing */}
-        <div className="hidden lg:flex flex-col justify-between p-12 bg-slate-900 text-white relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 pt-24 font-sans">
+      <div className="w-full max-w-5xl grid lg:grid-cols-2 bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+        {/* Left Side */}
+        <div className="hidden lg:flex flex-col justify-between p-12 bg-slate-900 text-white relative">
           <img 
             src={authBg} 
-            alt="Secure Terminal" 
-            className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay"
+            alt="Workspace" 
+            className="absolute inset-0 w-full h-full object-cover opacity-50"
           />
-          <div className="absolute inset-0 bg-slate-900/60"></div>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600 rounded-full blur-[100px] opacity-20 -translate-y-1/2 translate-x-1/2"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
           
           <div className="relative z-10">
-            <Link to="/" className="inline-flex items-center gap-2 mb-12">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black italic">T</div>
-              <span className="font-bold tracking-tight text-xl">TalentBridge</span>
+            <Link to="/" className="flex items-center gap-2 mb-12">
+              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-bold text-xl">T</div>
+              <span className="font-bold text-2xl tracking-tight">TalentBridge</span>
             </Link>
             
-            <h2 className="text-4xl font-black leading-tight mb-6">
-              Welcome back <br />
-               to the <span className="text-blue-500 italic">Elite</span> circle.
+            <h2 className="text-4xl font-bold leading-tight mb-6">
+              Welcome back! <br />
+              Ready for your next opportunity?
             </h2>
-            <p className="text-slate-400 text-lg leading-relaxed max-w-sm">
-              Connecting you with the world's most innovative companies and exceptional talent.
+            <p className="text-slate-300 text-lg leading-relaxed max-w-sm">
+              Sign in to catch up on your applications, manage your job posts, and see what's new.
             </p>
           </div>
 
           <div className="relative z-10 space-y-4">
             <div className="flex items-center gap-3 text-sm font-medium text-slate-300">
               <FiCheckCircle className="text-blue-500" />
-              <span>Real-time application tracking</span>
+              <span>Track your applications in real-time</span>
             </div>
             <div className="flex items-center gap-3 text-sm font-medium text-slate-300">
               <FiCheckCircle className="text-blue-500" />
-              <span>AI-powered skill matching</span>
+              <span>Connect with top recruiters</span>
             </div>
             <div className="flex items-center gap-3 text-sm font-medium text-slate-300">
               <FiCheckCircle className="text-blue-500" />
-              <span>Verified premium companies</span>
+              <span>Secure and easy to use</span>
             </div>
           </div>
         </div>
@@ -97,29 +96,29 @@ const Login = () => {
         {/* Right Side - Form */}
         <div className="p-8 lg:p-16 flex flex-col justify-center">
           <div className="mb-10">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight lg:hidden mb-12 flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center font-black italic text-sm">T</div>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight lg:hidden mb-8 flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-sm">T</div>
               TalentBridge
             </h1>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Sign in to Console</h3>
+            <h3 className="text-2xl font-bold text-slate-900 mb-2">Sign In</h3>
             <p className="text-slate-500 font-medium">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-blue-600 font-bold hover:underline">Create one for free</Link>
+              New here?{' '}
+              <Link to="/register" className="text-blue-600 font-bold hover:underline">Create an account</Link>
             </p>
           </div>
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl animate-in fade-in duration-300">
-                <p className="text-sm font-bold text-rose-600">{error}</p>
+              <div className="p-4 bg-red-50 border border-red-100 rounded-xl">
+                <p className="text-sm font-semibold text-red-600">{error}</p>
               </div>
             )}
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Work Email</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-blue-600 transition-colors">
+                <label className="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                     <FiMail className="w-5 h-5" />
                   </div>
                   <input
@@ -128,19 +127,19 @@ const Login = () => {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium placeholder:text-slate-400"
-                    placeholder="name@company.com"
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-50 transition-all outline-none font-medium"
+                    placeholder="Enter your email"
                   />
                 </div>
               </div>
 
               <div>
-                <div className="flex justify-between items-center mb-2 ml-1">
-                  <label className="block text-xs font-black uppercase tracking-widest text-slate-400">Security Key</label>
-                  <Link to="/forgot-password" title="Initialize Recovery" className="text-xs font-bold text-slate-400 hover:text-blue-600 transition-colors">Forgot Access?</Link>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-bold text-slate-700">Password</label>
+                  <Link to="/forgot-password" title="Initialize Recovery" className="text-xs font-bold text-blue-600 hover:underline">Forgot password?</Link>
                 </div>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-blue-600 transition-colors">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                     <FiLock className="w-5 h-5" />
                   </div>
                   <input
@@ -149,13 +148,13 @@ const Login = () => {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium placeholder:text-slate-400"
-                    placeholder="••••••••"
+                    className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-50 transition-all outline-none font-medium"
+                    placeholder="Enter your password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-900 transition-colors"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                   >
                     {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
                   </button>
@@ -163,38 +162,33 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-2">
               <input
                 id="remember"
                 type="checkbox"
-                className="w-5 h-5 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
               />
-              <label htmlFor="remember" className="text-sm font-bold text-slate-600 cursor-pointer select-none">Keep me authorized</label>
+              <label htmlFor="remember" className="text-sm font-medium text-slate-600 cursor-pointer">Remember me</label>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-500/20 hover:bg-blue-700 hover:shadow-blue-500/40 transition-all hover:-translate-y-1 disabled:opacity-50 disabled:translate-y-0 flex items-center justify-center gap-2 group mt-4"
+              className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 group"
             >
               {loading ? (
-                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               ) : (
                 <>
-                  Authenticate Access <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+                  Sign In <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-12 pt-8 border-t border-slate-50 text-center">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Secured by industry standards</p>
-            <div className="flex justify-center gap-6 grayscale opacity-30">
-              <span className="text-[10px] font-black border border-slate-200 px-2 py-1 rounded">SSL 256-BIT</span>
-              <span className="text-[10px] font-black border border-slate-200 px-2 py-1 rounded">GDPR READY</span>
-              <span className="text-[10px] font-black border border-slate-200 px-2 py-1 rounded">SOC2 TYPE II</span>
-            </div>
-          </div>
+          <footer className="mt-12 pt-8 border-t border-slate-100 text-center">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Secure Login</p>
+          </footer>
         </div>
       </div>
     </div>
