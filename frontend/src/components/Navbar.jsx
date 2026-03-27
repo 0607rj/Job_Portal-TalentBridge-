@@ -1,0 +1,301 @@
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { FiLogOut, FiMenu, FiX, FiUser, FiChevronDown, FiBell, FiSearch } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+
+const Navbar = () => {
+  const { isAuthenticated, user, logout, isCandidate, isRecruiter } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  const isHomePage = location.pathname === '/';
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    setUserMenuOpen(false);
+  };
+
+  const navbarBg = isHomePage && !scrolled
+    ? 'bg-transparent'
+    : 'bg-white/80 backdrop-blur-xl shadow-sm border-b border-slate-200/50';
+
+  const textColor = isHomePage && !scrolled
+    ? 'text-white'
+    : 'text-slate-600';
+
+  const activeTextColor = isHomePage && !scrolled
+    ? 'text-white font-bold'
+    : 'text-blue-600 font-bold';
+
+  const logoColor = isHomePage && !scrolled
+    ? 'text-white'
+    : 'text-blue-600';
+
+  return (
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${navbarBg} ${scrolled ? 'py-3' : 'py-5'}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-14">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link to="/" className={`group flex items-center gap-2.5 outline-none`}>
+              <div className="relative">
+                <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-white text-xl font-black italic">T</span>
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
+              </div>
+              <span className={`text-xl lg:text-2xl font-bold tracking-tight ${logoColor} transition-colors duration-300`}>
+                Talent<span className="font-black italic opacity-80 text-indigo-500">Bridge</span>
+              </span>
+            </Link>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-1">
+            {isAuthenticated ? (
+              <>
+                <div className="flex items-center px-4 space-x-1 mr-4 border-r border-slate-200/50">
+                  <Link
+                    to={isCandidate ? '/candidate/dashboard' : '/recruiter/dashboard'}
+                    className={`${location.pathname.includes('dashboard') ? activeTextColor : textColor} px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-100/50 transition-all`}
+                  >
+                    Dashboard
+                  </Link>
+
+                  {isCandidate && (
+                    <>
+                      <Link
+                        to="/candidate/jobs"
+                        className={`${location.pathname === '/candidate/jobs' ? activeTextColor : textColor} px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-100/50 transition-all`}
+                      >
+                        Find Jobs
+                      </Link>
+                      <Link
+                        to="/candidate/applications"
+                        className={`${location.pathname === '/candidate/applications' ? activeTextColor : textColor} px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-100/50 transition-all`}
+                      >
+                        Applications
+                      </Link>
+                    </>
+                  )}
+
+                  {isRecruiter && (
+                    <>
+                      <Link
+                        to="/recruiter/jobs"
+                        className={`${location.pathname === '/recruiter/jobs' ? activeTextColor : textColor} px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-100/50 transition-all`}
+                      >
+                        My Posts
+                      </Link>
+                      <Link
+                        to="/recruiter/applications"
+                        className={`${location.pathname === '/recruiter/applications' ? activeTextColor : textColor} px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-100/50 transition-all`}
+                      >
+                        Candidates
+                      </Link>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button className={`${textColor} p-2 rounded-full hover:bg-slate-100/50 transition-all`}>
+                    <FiBell size={18} />
+                  </button>
+
+                  {/* User Menu */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setUserMenuOpen(!userMenuOpen)}
+                      className={`flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-slate-200/50 bg-white/50 hover:bg-white hover:shadow-md transition-all outline-none`}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0">
+                        {user?.avatar ? (
+                          <img src={user.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          <FiUser className="text-slate-400" />
+                        )}
+                      </div>
+                      <div className="text-left py-0.5">
+                        <div className="text-xs font-bold text-slate-900 leading-none">
+                          {user?.name?.split(' ')[0]}
+                        </div>
+                      </div>
+                      <FiChevronDown size={14} className={`text-slate-400 transition-transform duration-300 ${userMenuOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {userMenuOpen && (
+                      <div className="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-100 py-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="px-5 py-3 mb-2 border-b border-slate-50">
+                          <div className="font-bold text-slate-900 leading-tight">{user?.name}</div>
+                          <div className="text-xs text-slate-500 font-medium truncate">{user?.email}</div>
+                          <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-[10px] font-bold text-blue-600 uppercase tracking-wider">
+                            {user?.role} Account
+                          </div>
+                        </div>
+                        <Link
+                          to={isCandidate ? '/candidate/profile' : '/recruiter/profile'}
+                          className="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-all"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <FiUser size={16} />
+                          Profile Settings
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-rose-500 hover:bg-rose-50 transition-all"
+                        >
+                          <FiLogOut size={16} />
+                          Sign Out
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className={`${textColor} px-5 py-2 rounded-xl font-semibold text-sm hover:bg-slate-100/50 transition-all`}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-blue-500/25 hover:bg-blue-700 hover:shadow-blue-500/40 hover:-translate-y-0.5"
+                >
+                  Get Started
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="lg:hidden flex items-center gap-3">
+            {isAuthenticated && (
+              <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
+                <FiUser className="text-slate-400" />
+              </div>
+            )}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className={`${textColor} p-2 rounded-xl hover:bg-slate-100 transition-all outline-none`}
+            >
+              {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 top-[73px] bg-white/95 backdrop-blur-xl z-40 animate-in slide-in-from-right duration-300">
+          <div className="px-6 py-8 space-y-6">
+            {isAuthenticated ? (
+              <>
+                <div className="space-y-1">
+                  <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Main Menu</p>
+                  <Link
+                    to={isCandidate ? '/candidate/dashboard' : '/recruiter/dashboard'}
+                    className="flex items-center px-4 py-4 text-slate-900 border-b border-slate-50 font-bold tracking-tight hover:text-blue-600"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  {isCandidate && (
+                    <>
+                      <Link
+                        to="/candidate/jobs"
+                        className="flex items-center px-4 py-4 text-slate-900 border-b border-slate-50 font-bold tracking-tight hover:text-blue-600"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Find Jobs
+                      </Link>
+                      <Link
+                        to="/candidate/applications"
+                        className="flex items-center px-4 py-4 text-slate-900 border-b border-slate-50 font-bold tracking-tight hover:text-blue-600"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Applications
+                      </Link>
+                    </>
+                  )}
+                  {isRecruiter && (
+                    <>
+                      <Link
+                        to="/recruiter/jobs"
+                        className="flex items-center px-4 py-4 text-slate-900 border-b border-slate-50 font-bold tracking-tight hover:text-blue-600"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        My Posts
+                      </Link>
+                      <Link
+                        to="/recruiter/applications"
+                        className="flex items-center px-4 py-4 text-slate-900 border-b border-slate-50 font-bold tracking-tight hover:text-blue-600"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Candidates
+                      </Link>
+                    </>
+                  )}
+                </div>
+
+                <div className="pt-6 space-y-4">
+                  <Link
+                    to="/profile"
+                    className="flex items-center gap-3 px-4 py-4 text-slate-600 font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <FiUser size={20} className="text-slate-400" />
+                    My Profile
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-4 text-rose-500 font-bold"
+                  >
+                    <FiLogOut size={20} />
+                    Sign Out
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <Link
+                  to="/login"
+                  className="block px-6 py-4 text-slate-900 text-center font-bold tracking-tight border border-slate-200 rounded-2xl"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  className="block px-6 py-4 text-white bg-blue-600 text-center font-bold tracking-tight rounded-2xl shadow-xl shadow-blue-500/20"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Join TalentBridge
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+export default Navbar;
