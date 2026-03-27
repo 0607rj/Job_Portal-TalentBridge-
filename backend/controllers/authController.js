@@ -187,11 +187,12 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    const { name, phone, profile, company } = req.body;
+    const { name, phone, avatar, profile, company } = req.body;
 
     // Update common fields
     if (name) user.name = name;
     if (phone) user.phone = phone;
+    if (avatar) user.avatar = avatar;
 
     // Update role-specific fields
     if (user.role === 'candidate' && profile) {

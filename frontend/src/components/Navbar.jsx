@@ -52,12 +52,12 @@ const Navbar = () => {
             <Link to="/" className={`group flex items-center gap-2.5 outline-none`}>
               <div className="relative">
                 <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform duration-300">
-                  <span className="text-white text-xl font-black italic">T</span>
+                  <span className="text-white text-xl font-bold">T</span>
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
               </div>
               <span className={`text-xl lg:text-2xl font-bold tracking-tight ${logoColor} transition-colors duration-300`}>
-                Talent<span className="font-black italic opacity-80 text-indigo-500">Bridge</span>
+                Talent<span className="font-bold opacity-80 text-indigo-500">Bridge</span>
               </span>
             </Link>
           </div>
@@ -145,7 +145,7 @@ const Navbar = () => {
                           </div>
                         </div>
                         <Link
-                          to={isCandidate ? '/candidate/profile' : '/recruiter/profile'}
+                          to="/profile"
                           className="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-all"
                           onClick={() => setUserMenuOpen(false)}
                         >

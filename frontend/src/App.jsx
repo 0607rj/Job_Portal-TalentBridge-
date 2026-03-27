@@ -14,6 +14,9 @@ import ResetPassword from './pages/ResetPassword';
 import CandidateDashboard from './pages/candidate/CandidateDashboard';
 import RecruiterDashboard from './pages/recruiter/RecruiterDashboard';
 
+// Core Nodes
+import Profile from './pages/Profile';
+
 // Candidate Operational Nodes
 import BrowseJobs from './pages/candidate/BrowseJobs';
 import MyApplications from './pages/candidate/MyApplications';
@@ -36,6 +39,16 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+
+            {/* Common Internal Routes */}
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute allowedRoles={['candidate', 'recruiter']}>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Candidate Internal Routing */}
             <Route

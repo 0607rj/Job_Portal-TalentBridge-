@@ -25,7 +25,7 @@ const app = express();
 // --- Rate Limiting (Brute Force Protection) ---
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 15,                   // max 15 auth requests per window per IP
+  max: 100,                  // Increased for development flexibility
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests. Please try again in 15 minutes.' }
@@ -41,7 +41,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:3000'
-];
+].filter(Boolean); // Remote null/undefined nodes
 
 app.use(cors({
   origin: function (origin, callback) {

@@ -1,5 +1,6 @@
 import Application from '../models/Application.js';
 import Job from '../models/Job.js';
+import mongoose from 'mongoose';
 
 // @desc    Apply for a job
 // @route   POST /api/applications
@@ -124,23 +125,30 @@ export const getJobApplications = async (req, res) => {
     const { jobId } = req.params;
     const { status, page = 1, limit = 20 } = req.query;
 
-    // Check if job exists and belongs to recruiter
-    const job = await Job.findById(jobId);
-    if (!job) {
-      return res.status(404).json({
-        success: false,
-        message: 'Job not found'
-      });
+    let query = {};
+
+    if (jobId === 'all') {
+      // Recruiter fetching ALL apps across all their jobs
+      query = { recruiter: new mongoose.Types.ObjectId(req.user.id) };
+    } else {
+      // Check if specific job exists and belongs to recruiter
+      const job = await Job.findById(jobId);
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: 'Job not found'
+        });
+      }
+
+      if (job.postedBy.toString() !== req.user.id) {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to view applications for this job'
+        });
+      }
+      query = { job: new mongoose.Types.ObjectId(jobId) };
     }
 
-    if (job.postedBy.toString() !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to view applications for this job'
-      });
-    }
-
-    const query = { job: jobId };
     if (status) {
       query.status = status;
     }
@@ -159,7 +167,7 @@ export const getJobApplications = async (req, res) => {
 
     // Get status counts
     const statusCounts = await Application.aggregate([
-      { $match: { job: job._id } },
+      { $match: query },
       { $group: { _id: '$status', count: { $sum: 1 } } }
     ]);
 

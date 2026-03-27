@@ -1,210 +1,215 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { applicationAPI, jobAPI } from '../../services/api';
-import { FiArrowLeft, FiUser, FiMail, FiPhone, FiFileText, FiCheckCircle, FiXCircle, FiClock, FiSettings, FiSend, FiPlus, FiMessageSquare } from 'react-icons/fi';
+import { applicationAPI, jobAPI, interviewAPI } from '../../services/api';
+import { FiUser, FiFileText, FiCalendar, FiCheckCircle, FiXCircle, FiClock, FiMail, FiPhone, FiExternalLink, FiSearch, FiFilter } from 'react-icons/fi';
 
 const ViewApplications = () => {
   const { jobId } = useParams();
-  const [applications, setApplications] = useState([]);
   const [job, setJob] = useState(null);
+  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedApp, setSelectedApp] = useState(null);
-  const [statusLoading, setStatusLoading] = useState(false);
-  const [note, setNote] = useState('');
+  const [interviewData, setInterviewData] = useState({
+    title: 'Initial Interview',
+    date: '',
+    time: '',
+    location: 'Video Call (Jitsi)',
+  });
 
   useEffect(() => {
-    fetchJobDetails();
-    fetchApplications();
+    fetchJobAndApplications();
   }, [jobId]);
 
-  const fetchJobDetails = async () => {
+  const fetchJobAndApplications = async () => {
     try {
-      const resp = await jobAPI.getJobById(jobId);
-      setJob(resp.data.job);
+      const resp = await applicationAPI.getJobApplications(jobId);
+      setApplications(resp.data.applications);
+      
+      if (jobId !== 'all') {
+        const jobResp = await jobAPI.getJobById(jobId);
+        setJob(jobResp.data.job);
+      }
     } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const fetchApplications = async () => {
-    try {
-      const response = await applicationAPI.getJobApplications(jobId);
-      setApplications(response.data.applications);
-    } catch (error) {
-      console.error('Error fetching applications:', error);
+      console.error('Error loading applications:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStatusUpdate = async (status) => {
-    setStatusLoading(true);
+  const handleStatusUpdate = async (appId, status) => {
     try {
-      await applicationAPI.updateApplicationStatus(selectedApp._id, { status, note: 'Status updated by recruiter' });
-      alert('Status Updated Success!');
-      setSelectedApp(null);
-      fetchApplications();
-    } catch (error) {
-      alert('Error: ' + error.response?.data?.message);
-    } finally {
-      setStatusLoading(false);
+      await applicationAPI.updateApplicationStatus(appId, { status });
+      alert(`Application marked as ${status}`);
+      fetchJobAndApplications();
+    } catch (err) {
+      alert('Error updating status');
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Applied': return 'bg-blue-50 text-blue-600 border-blue-100';
-      case 'Under Review': return 'bg-indigo-50 text-indigo-600 border-indigo-100';
-      case 'Shortlisted': return 'bg-violet-50 text-violet-600 border-violet-100';
-      case 'Interview Scheduled': return 'bg-amber-50 text-amber-600 border-amber-100';
-      case 'Rejected': return 'bg-rose-50 text-rose-600 border-rose-100';
-      case 'Accepted': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
-      default: return 'bg-slate-50 text-slate-600 border-slate-100';
+  const handleScheduleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const scheduledDate = new Date(`${interviewData.date}T${interviewData.time}`);
+      const meetingLink = `https://meet.jit.si/TalentBridge-Meeting-${selectedApp._id}`;
+      
+      await interviewAPI.scheduleInterview({
+        applicationId: selectedApp._id,
+        candidateId: selectedApp.candidate._id,
+        jobId: selectedApp.job._id || jobId,
+        scheduledDate,
+        title: interviewData.title,
+        meetingLink
+      });
+
+      await applicationAPI.updateApplicationStatus(selectedApp._id, { status: 'Interview Scheduled' });
+      alert('Interview scheduled successfully!');
+      setShowScheduleModal(false);
+      fetchJobAndApplications();
+    } catch (err) {
+      alert('Error scheduling interview');
     }
   };
+
+  if (loading) return (
+     <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="w-10 h-10 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-500">Loading applications...</p>
+     </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#fcfcfd] p-4 lg:p-8 pt-24">
+    <div className="min-h-screen bg-slate-50 pt-24 pb-12 font-sans px-4 lg:px-8">
       <div className="max-w-7xl mx-auto">
         
-        {/* Header Section */}
-        <div className="mb-12">
-           <Link to="/recruiter/jobs" className="inline-flex items-center gap-2 text-sm font-black text-blue-600 uppercase tracking-widest mb-6 hover:gap-3 transition-all">
-             <FiArrowLeft /> Back to Directives
-           </Link>
-           <h1 className="text-4xl font-black text-[#0f172a] tracking-tight mb-2 uppercase italic">Talent Pipeline</h1>
-           {job && (
-             <div className="flex items-center gap-4 text-[#64748b] font-medium italic">
-                <span>Analyzing submissions for: <strong className="text-slate-900">{job.title}</strong></span>
-                <span className="w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
-                <span>{applications.length} node(s) detected</span>
-             </div>
-           )}
+        {/* Header */}
+        <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+           <div>
+              <Link to="/recruiter/jobs" className="text-blue-600 text-sm font-bold flex items-center gap-2 mb-4 hover:underline">
+                 ← Back to Job Postings
+              </Link>
+              <h1 className="text-3xl font-bold text-slate-900">{jobId === 'all' ? 'All Applications' : `Applications for ${job?.title}`}</h1>
+              <p className="text-slate-500 mt-1">Review your candidates and move them to the next stage.</p>
+           </div>
+           
+           <div className="flex bg-white rounded-xl shadow-sm border p-4 items-center gap-8">
+              <div className="text-center">
+                 <p className="text-2xl font-bold text-slate-900">{applications.length}</p>
+                 <p className="text-xs font-bold text-slate-400 uppercase">Total Applicants</p>
+              </div>
+           </div>
         </div>
 
-        {/* Content Table */}
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-32">
-             <div className="w-12 h-12 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-             <p className="font-black uppercase tracking-widest text-sm text-slate-500">Scanning Submissions...</p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden overflow-x-auto">
-             <table className="w-full">
-                <thead className="bg-[#0f172a] text-white">
-                   <tr>
-                      <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] opacity-50">Identity Node</th>
-                      <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] opacity-50">Contact Protocol</th>
-                      <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] opacity-50">Current State</th>
-                      <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] opacity-50">Operations</th>
-                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                   {applications.length > 0 ? applications.map((app) => (
-                      <tr key={app._id} className="hover:bg-slate-50/50 transition-all group">
-                         <td className="px-8 py-8">
-                            <div className="flex items-center gap-4">
-                               <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center font-black text-[#0f172a]">
-                                  {app.candidate.name[0]}
-                               </div>
-                               <div>
-                                  <h4 className="text-lg font-black text-[#0f172a] uppercase italic tracking-tighter group-hover:text-blue-600 transition-colors uppercase">{app.candidate.name}</h4>
-                                  <p className="text-[10px] font-bold text-[#64748b] uppercase tracking-widest flex items-center gap-2">
-                                     <FiFileText /> Submission ID: {app._id.slice(-6).toUpperCase()}
-                                  </p>
-                               </div>
-                            </div>
-                         </td>
-                         <td className="px-8 py-8">
-                            <div className="space-y-1">
-                               <p className="text-[10px] font-bold text-[#0f172a] lowercase flex items-center gap-2"><FiMail className="text-blue-500" /> {app.candidate.email}</p>
-                               <p className="text-[10px] font-bold text-[#64748b] lowercase flex items-center gap-2"><FiPhone className="text-blue-500" /> {app.candidate.phone || 'NO PROTOCOL'}</p>
-                            </div>
-                         </td>
-                         <td className="px-8 py-8">
-                            <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${getStatusColor(app.status)}`}>
-                               {app.status}
-                            </div>
-                         </td>
-                         <td className="px-8 py-8">
-                            <div className="flex items-center gap-3">
-                               <button 
-                                 onClick={() => setSelectedApp(app)}
-                                 className="px-6 py-2.5 bg-slate-50 text-[#0f172a] rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-[#0f172a] hover:text-white transition-all shadow-sm border border-slate-100"
-                               >
-                                 Manage State
-                               </button>
-                            </div>
-                         </td>
-                      </tr>
-                   )) : (
-                      <tr>
-                         <td colSpan="4" className="px-8 py-32 text-center">
-                            <FiUsers className="w-16 h-16 text-slate-200 mx-auto mb-6" />
-                            <p className="text-xl font-black text-[#0f172a] uppercase italic mb-2 tracking-tighter">No submissions detected</p>
-                            <p className="text-[#64748b] font-medium">Monitoring job nodes for incoming candidate data streams...</p>
-                         </td>
-                      </tr>
-                   )}
-                </tbody>
-             </table>
-          </div>
-        )}
+        {/* List */}
+        <div className="space-y-6">
+           {applications.length > 0 ? applications.map((app) => (
+              <div key={app._id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-10 transition-all hover:border-blue-200">
+                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                    
+                    {/* User Profile Info */}
+                    <div className="flex items-start gap-6">
+                       <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-2xl font-bold text-slate-600">
+                          {app.candidate?.name?.[0]}
+                       </div>
+                       <div>
+                          <h3 className="text-xl font-bold text-slate-900">{app.candidate?.name}</h3>
+                          <p className="text-blue-600 font-bold text-xs uppercase tracking-widest mt-1">{app.status}</p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 mt-4">
+                             <div className="flex items-center gap-2 text-sm text-slate-500"><FiMail className="text-slate-300" /> {app.candidate?.email}</div>
+                             <div className="flex items-center gap-2 text-sm text-slate-500"><FiPhone className="text-slate-300" /> {app.candidate?.phone || 'No phone'}</div>
+                             <div className="flex items-center gap-2 text-sm text-slate-500"><FiCalendar className="text-slate-300" /> Applied: {new Date(app.createdAt).toLocaleDateString()}</div>
+                          </div>
+                       </div>
+                    </div>
+
+                    {/* Actions Terminal */}
+                    <div className="flex flex-wrap items-center gap-3 pt-6 lg:pt-0 lg:border-l lg:pl-8 border-slate-100">
+                       {app.candidate?.profile?.resume && (
+                         <a href={app.candidate.profile.resume} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all">
+                            View Resume <FiExternalLink />
+                         </a>
+                       )}
+                       
+                       <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleStatusUpdate(app._id, 'Shortlisted')}
+                            className={`p-3 rounded-xl border transition-all ${app.status === 'Shortlisted' ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-white border-slate-100 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 hover:border-emerald-100'}`}
+                            title="Shortlist"
+                          >
+                             <FiCheckCircle size={20} />
+                          </button>
+                          
+                          <button 
+                            onClick={() => { setSelectedApp(app); setShowScheduleModal(true); }}
+                            className={`p-3 rounded-xl border transition-all ${app.status === 'Interview Scheduled' ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-slate-100 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 hover:border-indigo-100'}`}
+                            title="Schedule Interview"
+                          >
+                             <FiCalendar size={20} />
+                          </button>
+
+                          <button 
+                             onClick={() => handleStatusUpdate(app._id, 'Rejected')}
+                             className={`p-3 rounded-xl border transition-all ${app.status === 'Rejected' ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-white border-slate-100 text-slate-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-100'}`}
+                             title="Reject"
+                          >
+                             <FiXCircle size={20} />
+                          </button>
+                       </div>
+                    </div>
+                 </div>
+                 
+                 {/* Experience / Insights */}
+                 <div className="mt-8 pt-6 border-t border-slate-50">
+                    <h4 className="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest leading-relaxed">Candidate Skills</h4>
+                    <div className="flex flex-wrap gap-2">
+                       {app.candidate?.profile?.skills?.map((skill, i) => (
+                         <span key={i} className="px-3 py-1 bg-slate-50 text-slate-700 text-xs font-bold rounded-lg border border-slate-100">
+                            {skill}
+                         </span>
+                       )) || <p className="text-xs text-slate-400 font-medium">No skills provided.</p>}
+                    </div>
+                 </div>
+              </div>
+           )) : (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-20 text-center">
+                 <p className="text-slate-500">No applications were found for this job position.</p>
+              </div>
+           )}
+        </div>
       </div>
 
-      {/* Application Details & Management Modal */}
-      {selectedApp && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-[#0f172a]/80 backdrop-blur-md" onClick={() => setSelectedApp(null)}></div>
-          <div className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-             <div className="p-8 lg:p-12">
-                <div className="flex items-center justify-between mb-12">
-                   <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600 mb-2">Submission Intelligence</p>
-                      <h2 className="text-4xl font-black italic uppercase tracking-tighter text-[#0f172a]">{selectedApp.candidate.name}</h2>
-                   </div>
-                   <div onClick={() => setSelectedApp(null)} className="cursor-pointer text-xs font-black p-2 border border-slate-100 rounded-xl hover:bg-slate-50 transition-all uppercase">Esc [X]</div>
-                </div>
-
-                <div className="space-y-10">
-                   {/* Cover Letter Section */}
-                   <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8] mb-4 flex items-center gap-2 italic">
-                        <FiMessageSquare className="text-blue-500" /> Motivation Statement Module
-                      </p>
-                      <p className="text-sm font-medium text-slate-700 leading-relaxed italic">
-                         "{selectedApp.coverLetter || 'No statement provided.'}"
-                      </p>
-                   </div>
-
-                   {/* Status Update Node */}
-                   <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8] mb-6 flex items-center gap-2">
-                        <FiSettings className="text-blue-500" /> Reconfigure State Protocol
-                      </p>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                         {['Applied', 'Under Review', 'Shortlisted', 'Interview Scheduled', 'Rejected', 'Accepted'].map((status) => (
-                            <button 
-                              key={status}
-                              onClick={() => handleStatusUpdate(status)}
-                              className={`px-4 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border ${
-                                selectedApp.status === status 
-                                ? 'bg-[#0f172a] text-white border-transparent shadow-lg scale-105' 
-                                : 'bg-white border-slate-100 text-slate-400 hover:border-blue-600 hover:text-blue-600'
-                              }`}
-                            >
-                               {status}
-                            </button>
-                         ))}
-                      </div>
-                   </div>
-
-                   <button className="w-full py-4 bg-slate-100 text-[#0f172a] rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all flex items-center justify-center gap-3">
-                      Analyze Technical Resume Module <FiSend />
-                   </button>
-                </div>
-             </div>
-          </div>
+      {/* Schedule Modal */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm shadow-indigo-100" onClick={() => setShowScheduleModal(false)}></div>
+           <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl p-8">
+              <h2 className="text-xl font-bold text-slate-900 mb-6">Schedule Interview</h2>
+              <form onSubmit={handleScheduleSubmit} className="space-y-4">
+                 <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Meeting Title</label>
+                    <input type="text" className="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 font-bold focus:ring-2 focus:ring-blue-500 outline-none" 
+                      value={interviewData.title} onChange={(e) => setInterviewData({...interviewData, title: e.target.value})}
+                    />
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Date</label>
+                      <input type="date" className="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 font-bold focus:ring-2 focus:ring-blue-500 outline-none" 
+                        value={interviewData.date} onChange={(e) => setInterviewData({...interviewData, date: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Time</label>
+                      <input type="time" className="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 font-bold focus:ring-2 focus:ring-blue-500 outline-none" 
+                        value={interviewData.time} onChange={(e) => setInterviewData({...interviewData, time: e.target.value})}
+                      />
+                    </div>
+                 </div>
+                 <button type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl mt-4 hover:bg-blue-700 transition-all shadow-lg active:scale-95">
+                    Schedule and Send Link
+                 </button>
+              </form>
+           </div>
         </div>
       )}
     </div>
