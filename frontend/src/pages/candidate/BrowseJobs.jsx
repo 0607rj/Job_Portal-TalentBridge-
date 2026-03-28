@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { jobAPI, applicationAPI } from '../../services/api';
 import { FiSearch, FiMapPin, FiBriefcase, FiDollarSign, FiFilter, FiSend, FiCheckCircle, FiInfo } from 'react-icons/fi';
 
@@ -19,6 +20,7 @@ const BrowseJobs = () => {
     coverLetter: '',
   });
   const [stats, setStats] = useState(null);
+  const [appliedJobIds, setAppliedJobIds] = useState([]);
 
   useEffect(() => {
     fetchJobs();
@@ -30,6 +32,9 @@ const BrowseJobs = () => {
     try {
       const response = await jobAPI.getAllJobs(filters);
       setJobs(response.data.jobs);
+      
+      const appResp = await applicationAPI.getMyApplications();
+      setAppliedJobIds(appResp.data.applications.map(app => app.job._id || app.job));
     } catch (error) {
       console.error('Error fetching jobs:', error);
     } finally {
@@ -54,12 +59,12 @@ const BrowseJobs = () => {
         jobId: selectedJob._id,
         coverLetter: applicationData.coverLetter,
       });
-      alert('Application submitted successfully!');
+      toast.success('Application submitted successfully!');
       setSelectedJob(null);
       setApplicationData({ coverLetter: '' });
       fetchStats();
     } catch (error) {
-      alert(error.response?.data?.message || 'Error applying for job');
+      toast.error(error.response?.data?.message || 'Error applying for job');
     } finally {
       setApplying(false);
     }
@@ -71,8 +76,8 @@ const BrowseJobs = () => {
       <div className="max-w-7xl mx-auto mb-12">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
           <div>
-            <h1 className="text-4xl font-black text-[#0f172a] tracking-tight mb-2 uppercase italic">Elite Career Portal</h1>
-            <p className="text-[#64748b] font-medium italic">Connecting top tier talent with industry-leading engineering directives.</p>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Browse Open Roles</h1>
+            <p className="text-slate-500 font-medium">Find and apply for your next career opportunity.</p>
           </div>
           {stats && (
             <div className="flex gap-4">
@@ -127,9 +132,9 @@ const BrowseJobs = () => {
           </div>
           <button 
             onClick={fetchJobs}
-            className="bg-[#0f172a] text-white py-3 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-black transition-all shadow-lg active:scale-95"
+            className="bg-blue-600 text-white py-3 rounded-2xl font-semibold tracking-wide text-sm hover:bg-blue-700 transition-all shadow-md active:scale-95"
           >
-            Execute Search
+            Search Jobs
           </button>
         </div>
       </div>
@@ -137,9 +142,9 @@ const BrowseJobs = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-32 text-[#0f172a]">
-             <div className="w-12 h-12 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-             <p className="font-black uppercase tracking-widest text-sm">Syncing with Talent Nodes...</p>
+          <div className="flex flex-col items-center justify-center py-32 text-slate-700">
+             <div className="w-10 h-10 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+             <p className="font-semibold text-sm text-slate-500">Loading jobs...</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -147,17 +152,17 @@ const BrowseJobs = () => {
               <div key={job._id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col justify-between">
                 <div>
                   <div className="flex justify-between items-start mb-6">
-                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center font-black italic text-blue-600 text-xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
+                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center font-bold text-blue-600 text-xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                       {job.company[0]}
                     </div>
-                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-100">
+                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold border border-blue-100">
                       {job.jobType}
                     </span>
                   </div>
                   
-                  <h3 className="text-xl font-black text-[#0f172a] mb-2 leading-tight group-hover:text-blue-600 transition-colors uppercase italic">{job.title}</h3>
-                  <p className="text-sm font-bold text-[#64748b] mb-6 flex items-center gap-1">
-                    <FiInfo className="text-blue-500" /> {job.company}
+                  <h3 className="text-xl font-bold text-slate-900 mb-2 leading-tight group-hover:text-blue-600 transition-colors">{job.title}</h3>
+                  <p className="text-sm font-semibold text-slate-500 mb-6 flex items-center gap-1">
+                    <FiInfo className="text-blue-400" /> {job.company}
                   </p>
                   
                   <div className="space-y-3 mb-8">
@@ -171,16 +176,24 @@ const BrowseJobs = () => {
                 </div>
 
                 <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">
+                  <div className="text-xs font-semibold text-slate-400">
                     {new Date(job.createdAt).toLocaleDateString()}
                   </div>
-                  <button 
-                    onClick={() => setSelectedJob(job)}
-                    className="p-3 bg-slate-50 text-[#0f172a] rounded-xl hover:bg-[#0f172a] hover:text-white transition-all group/btn flex items-center gap-2"
-                  >
-                    <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover/btn:opacity-100 transition-all">Submit Access Req</span>
-                    <FiSend />
-                  </button>
+                  {appliedJobIds.includes(job._id) ? (
+                    <button 
+                      disabled
+                      className="px-5 py-2.5 bg-emerald-50 text-emerald-600 font-semibold rounded-xl flex items-center gap-2 cursor-not-allowed text-sm border border-emerald-100"
+                    >
+                      <FiCheckCircle /> Applied
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => setSelectedJob(job)}
+                      className="px-5 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 text-sm"
+                    >
+                      Apply Now <FiSend className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             )) : (
@@ -199,17 +212,16 @@ const BrowseJobs = () => {
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-[#0f172a]/80 backdrop-blur-md" onClick={() => setSelectedJob(null)}></div>
           <div className="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-             <div className="bg-[#0f172a] p-8 text-white relative">
-                 <div className="absolute top-8 right-8 cursor-pointer opacity-50 hover:opacity-100 transition-all font-black" onClick={() => setSelectedJob(null)}>CLOSE [X]</div>
-                 <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-2">Operation: Talent Integration</p>
-                 <h2 className="text-3xl font-black italic uppercase tracking-tighter">{selectedJob.title}</h2>
+             <div className="bg-slate-900 p-8 text-white relative">
+                 <div className="absolute top-8 right-8 cursor-pointer opacity-50 hover:opacity-100 transition-all font-semibold text-sm" onClick={() => setSelectedJob(null)}>Close</div>
+                 <h2 className="text-2xl font-bold tracking-tight">{selectedJob.title}</h2>
                  <p className="text-slate-400 font-medium">at {selectedJob.company}</p>
              </div>
              
              <div className="p-8">
                 <form className="space-y-6" onSubmit={handleApply}>
                    <div>
-                      <label className="block text-xs font-black uppercase tracking-widest text-[#94a3b8] mb-3 ml-1">Motivation Statement (Cover Letter)</label>
+                      <label className="block text-sm font-semibold text-slate-700 mb-3 ml-1">Cover Letter (Optional)</label>
                       <textarea 
                         required
                         className="w-full p-6 bg-slate-50 border border-slate-100 rounded-3xl min-h-[160px] focus:bg-white focus:border-blue-600 outline-none transition-all font-medium text-sm leading-relaxed"
@@ -229,17 +241,17 @@ const BrowseJobs = () => {
                       </div>
                    </div>
 
-                   <p className="text-[10px] text-slate-400 font-medium flex gap-2 items-center bg-blue-50/50 p-4 rounded-2xl">
-                     <FiCheckCircle className="text-blue-500" /> This request will automatically transmit your pre-qualified data and credentials to the hiring directive.
+                   <p className="text-xs text-slate-500 font-medium flex gap-2 items-center bg-blue-50 p-4 rounded-xl">
+                     <FiCheckCircle className="text-blue-500 shrink-0" /> Your profile details and resume will be automatically shared with the employer.
                    </p>
 
                    <button 
                      type="submit"
                      disabled={applying}
-                     className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-[0.98] uppercase tracking-widest text-sm"
+                     className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl flex items-center justify-center gap-3 shadow-md hover:bg-blue-700 transition-all active:scale-95 text-sm"
                    >
                      {applying ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : (
-                       <>Execute Submission <FiSend /></>
+                       <>Submit Application <FiSend /></>
                      )}
                    </button>
                 </form>

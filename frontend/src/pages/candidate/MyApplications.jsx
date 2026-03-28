@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { applicationAPI } from '../../services/api';
-import { FiClock, FiCheckCircle, FiXCircle, FiTrendingUp, FiArrowRight, FiInfo, FiTrash2, FiFileText } from 'react-icons/fi';
+import { FiClock, FiCheckCircle, FiXCircle, FiTrendingUp, FiArrowRight, FiInfo, FiTrash2, FiFileText, FiSend } from 'react-icons/fi';
 
 const MyApplications = () => {
   const [applications, setApplications] = useState([]);
@@ -56,25 +58,54 @@ const MyApplications = () => {
     }
   };
 
-  const handleWithdraw = async (id) => {
-    if (!window.confirm('Are you sure you want to withdraw this application? This action is irreversible.')) return;
-    try {
-      await applicationAPI.withdrawApplication(id);
-      setApplications(applications.filter(app => app._id !== id));
-      fetchStats();
-    } catch (error) {
-      alert('Error withdrawing application');
+  const getLatestNote = (app) => {
+    if (!app.statusHistory || app.statusHistory.length === 0) return null;
+    for (let i = app.statusHistory.length - 1; i >= 0; i--) {
+       if (app.statusHistory[i].note) return app.statusHistory[i].note;
     }
+    return null;
+  };
+
+  const handleWithdraw = (id) => {
+    toast((t) => (
+      <div>
+        <p className="font-bold text-slate-800 mb-3">Withdraw this application? This action is irreversible.</p>
+        <div className="flex gap-2 justify-end">
+          <button 
+            className="px-4 py-2 bg-rose-500 text-white rounded-lg text-sm font-bold shadow-sm"
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await applicationAPI.withdrawApplication(id);
+                setApplications(prev => prev.filter(app => app._id !== id));
+                fetchStats();
+                toast.success('Application withdrawn successfully');
+              } catch (error) {
+                toast.error('Error withdrawing application');
+              }
+            }}
+          >
+            Confirm
+          </button>
+          <button 
+            className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold border border-slate-200"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
   return (
     <div className="min-h-screen bg-[#fcfcfd] p-4 lg:p-8 pt-24">
       <div className="max-w-7xl mx-auto">
         {/* Header and Stats */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-12 gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
           <div>
-            <h1 className="text-4xl font-black text-[#0f172a] tracking-tight mb-2 uppercase italic">Application Lifecycle</h1>
-            <p className="text-[#64748b] font-medium italic">Track, analyze, and optimize your path to professional excellence.</p>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">My Applications</h1>
+            <p className="text-slate-500 font-medium">Track your job applications and status updates.</p>
           </div>
           
           {stats && (
@@ -101,53 +132,66 @@ const MyApplications = () => {
         ) : (
           <div className="space-y-6">
             {applications.length > 0 ? applications.map((app) => (
-              <div key={app._id} className="bg-white group overflow-hidden border border-slate-100 rounded-[2.5rem] shadow-md hover:shadow-2xl transition-all duration-500 p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative">
+              <div key={app._id} className="bg-white group overflow-hidden border border-slate-100 rounded-[2.5rem] shadow-md hover:shadow-2xl transition-all duration-500 p-8 flex flex-col gap-6 relative">
                  {/* Visual Accent */}
                  <div className={`absolute left-0 top-0 bottom-0 w-2 ${getStatusColor(app.status).split(' ')[1].replace('text-', 'bg-')}`}></div>
                  
-                 <div className="flex items-center gap-8">
-                    <div className="w-16 h-16 bg-slate-50 rounded-[1.5rem] flex items-center justify-center font-black italic text-2xl text-slate-900 group-hover:bg-[#0f172a] group-hover:text-white transition-all duration-500 shadow-inner">
-                      {app.job.company[0]}
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-black text-[#0f172a] leading-tight mb-1 italic uppercase group-hover:text-blue-600 transition-colors tracking-tighter">
-                        {app.job.title}
-                      </h3>
-                      <div className="flex items-center gap-3 text-sm font-bold text-[#64748b] mb-2">
-                        <span className="text-blue-500 uppercase">{app.job.company}</span> • <span>{app.job.location}</span>
+                 {/* Top Row: Info + Actions */}
+                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 ml-2">
+                   <div className="flex items-center gap-6">
+                      <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center font-bold text-2xl text-slate-800 transition-all duration-300">
+                        {app.job.company[0]}
                       </div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8] flex items-center gap-2">
-                         <FiClock className="text-blue-500" /> Applied on {new Date(app.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-slate-900 mb-1">
+                          {app.job.title}
+                        </h3>
+                        <div className="flex items-center gap-3 text-sm font-medium text-slate-500 mb-1">
+                          <span className="text-blue-600 font-semibold">{app.job.company}</span> • <span>{app.job.location}</span>
+                        </div>
+                        <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
+                           <FiClock className="text-blue-400" /> Applied on {new Date(app.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                   </div>
+                   
+                   <div className="flex flex-wrap items-center gap-6 lg:gap-8 w-full lg:w-auto">
+                     {/* Status Node */}
+                      <div className="flex flex-col lg:items-end">
+                        <p className="text-xs font-semibold text-slate-400 mb-1">Status</p>
+                        <div className={`px-4 py-1.5 rounded-full border ${getStatusColor(app.status)} text-xs font-semibold flex items-center gap-2 shadow-sm`}>
+                          {getStatusIcon(app.status)} {app.status}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-3 border-l border-slate-100 pl-4 lg:pl-6">
+                         {app.status === 'Interview Scheduled' && (
+                             <Link to={`/interview/${app._id}`} className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-all flex items-center gap-2 shadow-sm">
+                                Join Video Call
+                             </Link>
+                         )}
+                         <button 
+                           onClick={() => handleWithdraw(app._id)}
+                           title="Withdraw Application"
+                           className="w-10 h-10 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                         >
+                           <FiTrash2 />
+                         </button>
+                      </div>
+                   </div>
                  </div>
 
-                 <div className="flex flex-wrap items-center gap-8 lg:gap-12">
-                   {/* Status Node */}
-                    <div className="flex flex-col items-end">
-                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#94a3b8] mb-3">Live Status Node</p>
-                      <div className={`px-5 py-2 rounded-2xl border ${getStatusColor(app.status)} text-[10px] font-black uppercase tracking-widest flex items-center gap-3 animate-pulse shadow-sm`}>
-                        {getStatusIcon(app.status)} {app.status}
-                      </div>
+                 {/* Bottom Row: Recruiter Response UI */}
+                 {getLatestNote(app) && (
+                    <div className="w-full bg-blue-50/50 rounded-2xl p-4 border border-blue-100 flex gap-3 items-start ml-2 mt-2">
+                       <FiInfo className="text-blue-500 mt-0.5 shrink-0" size={16} />
+                       <div>
+                          <p className="text-xs font-bold text-blue-600 mb-1">Recruiter Response</p>
+                          <p className="text-sm text-slate-700">{getLatestNote(app)}</p>
+                       </div>
                     </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-4">
-                       <button 
-                         title="View Submission Logic"
-                         className="w-12 h-12 bg-slate-50 border border-slate-100 text-slate-400 rounded-2xl flex items-center justify-center hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm"
-                       >
-                         <FiFileText />
-                       </button>
-                       <button 
-                         onClick={() => handleWithdraw(app._id)}
-                         title="Withdraw Protocol"
-                         className="w-12 h-12 bg-rose-50 border border-rose-100 text-rose-400 rounded-2xl flex items-center justify-center hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-sm active:scale-90"
-                       >
-                         <FiTrash2 />
-                       </button>
-                    </div>
-                 </div>
+                 )}
               </div>
             )) : (
               <div className="py-32 bg-white rounded-[3rem] border border-slate-100 border-dashed text-center">

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { jobAPI, applicationAPI } from '../../services/api';
 import { FiPlus, FiBriefcase, FiTrash2, FiEdit3, FiUsers, FiDollarSign, FiMapPin, FiClock, FiSettings, FiSend, FiCheckCircle } from 'react-icons/fi';
 
@@ -8,6 +9,7 @@ const ManageJobs = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [stats, setStats] = useState(null);
+  const [editingJobId, setEditingJobId] = useState(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -66,9 +68,15 @@ const ManageJobs = () => {
         }
       };
 
-      await jobAPI.createJob(processedData);
-      alert('Job posted successfully!');
+      if (editingJobId) {
+        await jobAPI.updateJob(editingJobId, processedData);
+        toast.success('Job updated successfully!');
+      } else {
+        await jobAPI.createJob(processedData);
+        toast.success('Job posted successfully!');
+      }
       setShowModal(false);
+      setEditingJobId(null);
       fetchMyJobs();
       fetchStats();
       // Reset form
@@ -90,19 +98,65 @@ const ManageJobs = () => {
       });
     } catch (error) {
        const msg = error.response?.data?.error || error.response?.data?.message || 'Check all fields are filled';
-       alert('Error: ' + msg);
+       toast.error('Error: ' + msg);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this job posting?')) return;
-    try {
-      await jobAPI.deleteJob(id);
-      setJobs(jobs.filter(j => j._id !== id));
-      fetchStats();
-    } catch (error) {
-      alert('Error deleting job');
-    }
+  const handleEdit = (job) => {
+    setFormData({
+      title: job.title,
+      category: job.category,
+      description: job.description,
+      location: job.location,
+      workMode: job.workMode,
+      jobType: job.jobType,
+      salary: {
+        min: job.salary?.min || 0,
+        max: job.salary?.max || 0,
+        currency: job.salary?.currency || 'INR'
+      },
+      applicationDeadline: job.applicationDeadline ? new Date(job.applicationDeadline).toISOString().split('T')[0] : '',
+      requirements: job.requirements?.join(', ') || '',
+      responsibilities: job.responsibilities?.join(', ') || '',
+      skills: job.skills?.join(', ') || '',
+      openings: job.openings || 1,
+      isPaid: job.isPaid !== undefined ? job.isPaid : true,
+      duration: job.duration || 'Permanent'
+    });
+    setEditingJobId(job._id);
+    setShowModal(true);
+  };
+
+  const handleDelete = (id) => {
+    toast((t) => (
+      <div>
+        <p className="font-bold text-slate-800 mb-3">Are you sure you want to delete this job posting?</p>
+        <div className="flex gap-2 justify-end">
+          <button 
+            className="px-4 py-2 bg-rose-500 text-white rounded-lg text-sm font-bold shadow-sm"
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await jobAPI.deleteJob(id);
+                setJobs(prev => prev.filter(j => j._id !== id));
+                fetchStats();
+                toast.success('Job deleted successfully');
+              } catch (error) {
+                toast.error('Error deleting job');
+              }
+            }}
+          >
+            Delete
+          </button>
+          <button 
+            className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold border border-slate-200"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
   return (
@@ -117,7 +171,15 @@ const ManageJobs = () => {
            </div>
            
            <button 
-             onClick={() => setShowModal(true)}
+             onClick={() => {
+               setEditingJobId(null);
+               setFormData({
+                 title: '', category: 'Software Development', description: '', location: '', workMode: 'On-site',
+                 jobType: 'Full-time', salary: { min: 0, max: 0, currency: 'INR' }, applicationDeadline: '',
+                 requirements: '', responsibilities: '', skills: '', openings: 1, isPaid: true, duration: 'Permanent'
+               });
+               setShowModal(true);
+             }}
              className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-3 active:scale-95"
            >
              Post a New Job <FiPlus />
@@ -192,7 +254,12 @@ const ManageJobs = () => {
                          </td>
                          <td className="px-8 py-6">
                             <div className="flex items-center gap-2">
-                               <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"><FiEdit3 /></button>
+                               <button 
+                                 onClick={() => handleEdit(job)}
+                                 className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                               >
+                                 <FiEdit3 />
+                               </button>
                                <button 
                                  onClick={() => handleDelete(job._id)}
                                  className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
@@ -221,7 +288,7 @@ const ManageJobs = () => {
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
           <div className="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl overflow-y-auto p-8">
              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold text-slate-900">Post a New Job</h2>
+                <h2 className="text-2xl font-bold text-slate-900">{editingJobId ? 'Edit Job Posting' : 'Post a New Job'}</h2>
                 <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 text-xl font-bold p-2">×</button>
              </div>
 
@@ -371,7 +438,7 @@ const ManageJobs = () => {
                 <div className="pt-8 border-t border-slate-100 flex gap-4">
                    <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-4 text-slate-500 font-bold rounded-xl hover:bg-slate-100 transition-all">Cancel</button>
                    <button type="submit" className="flex-[2] py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
-                     Publish Posting <FiSend />
+                     {editingJobId ? 'Update Posting' : 'Publish Posting'} <FiSend />
                    </button>
                 </div>
              </form>

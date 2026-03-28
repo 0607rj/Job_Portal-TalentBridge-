@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
 import { FiUser, FiMail, FiPhone, FiMapPin, FiBriefcase, FiGlobe, FiFileText, FiSave, FiLink, FiCamera } from 'react-icons/fi';
@@ -62,9 +63,9 @@ const Profile = () => {
 
       const response = await authAPI.updateProfile(dataToSubmit);
       updateUser(response.data.user);
-      alert('Your profile has been updated successfully!');
+      toast.success('Your profile has been updated successfully!');
     } catch (error) {
-      alert('Update Failed: ' + (error.response?.data?.message || error.message));
+      toast.error('Update Failed: ' + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);
     }
@@ -202,7 +203,7 @@ const Profile = () => {
                                 onChange={(e) => {
                                   const file = e.target.files[0];
                                   if (file) {
-                                    if (file.size > 10 * 1024 * 1024) return alert('File too large. Max 10MB.');
+                                    if (file.size > 10 * 1024 * 1024) return toast.error('File too large. Max 10MB.');
                                     const reader = new FileReader();
                                     reader.onloadend = () => setProfileData({...profileData, resume: reader.result});
                                     reader.readAsDataURL(file);

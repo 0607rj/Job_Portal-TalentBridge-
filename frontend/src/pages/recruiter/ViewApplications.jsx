@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { applicationAPI, jobAPI, interviewAPI } from '../../services/api';
 import { FiUser, FiFileText, FiCalendar, FiCheckCircle, FiXCircle, FiClock, FiMail, FiPhone, FiExternalLink, FiSearch, FiFilter } from 'react-icons/fi';
 
@@ -11,6 +12,7 @@ const ViewApplications = ({ defaultJobId }) => {
   const [loading, setLoading] = useState(true);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedApp, setSelectedApp] = useState(null);
+  const [feedbackMap, setFeedbackMap] = useState({});
   const [interviewData, setInterviewData] = useState({
     title: 'Initial Interview',
     date: '',
@@ -40,11 +42,13 @@ const ViewApplications = ({ defaultJobId }) => {
 
   const handleStatusUpdate = async (appId, status) => {
     try {
-      await applicationAPI.updateApplicationStatus(appId, { status });
-      alert(`Application marked as ${status}`);
+      const note = feedbackMap[appId] || '';
+      await applicationAPI.updateApplicationStatus(appId, { status, note });
+      toast.success(`Application marked as ${status}`);
+      setFeedbackMap({...feedbackMap, [appId]: ''});
       fetchJobAndApplications();
     } catch (err) {
-      alert('Error updating status: ' + (err.response?.data?.message || err.message));
+      toast.error('Error updating status: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -63,12 +67,11 @@ const ViewApplications = ({ defaultJobId }) => {
         meetingLink
       });
 
-      await applicationAPI.updateApplicationStatus(selectedApp._id, { status: 'Interview Scheduled' });
-      alert('Interview scheduled successfully!');
+      toast.success('Interview scheduled successfully!');
       setShowScheduleModal(false);
       fetchJobAndApplications();
     } catch (err) {
-      alert('Error scheduling interview');
+      toast.error('Error scheduling interview');
     }
   };
 
@@ -134,6 +137,11 @@ const ViewApplications = ({ defaultJobId }) => {
 
                     {/* Actions Terminal */}
                     <div className="flex flex-wrap items-center gap-3 pt-6 lg:pt-0 lg:border-l lg:pl-8 border-slate-100">
+                       {app.status === 'Interview Scheduled' && (
+                          <Link to={`/interview/${app._id}`} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95">
+                              Join Video Call <FiExternalLink />
+                          </Link>
+                       )}
                        {app.candidate?.profile?.resume && (
                          <a href={app.candidate.profile.resume} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all">
                             View Resume <FiExternalLink />
@@ -177,14 +185,33 @@ const ViewApplications = ({ defaultJobId }) => {
                  </div>
                  
                  {/* Experience / Insights */}
-                 <div className="mt-8 pt-6 border-t border-slate-50">
-                    <h4 className="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest leading-relaxed">Candidate Skills</h4>
-                    <div className="flex flex-wrap gap-2">
-                       {app.candidate?.profile?.skills?.map((skill, i) => (
-                         <span key={i} className="px-3 py-1 bg-slate-50 text-slate-700 text-xs font-bold rounded-lg border border-slate-100">
-                            {skill}
-                         </span>
-                       )) || <p className="text-xs text-slate-400 font-medium">No skills provided.</p>}
+                 <div className="mt-8 pt-6 border-t border-slate-50 flex flex-col lg:flex-row gap-8">
+                    <div className="flex-1">
+                       <h4 className="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest leading-relaxed">Candidate Skills</h4>
+                       <div className="flex flex-wrap gap-2 mb-6">
+                          {app.candidate?.profile?.skills?.map((skill, i) => (
+                            <span key={i} className="px-3 py-1 bg-slate-50 text-slate-700 text-xs font-bold rounded-lg border border-slate-100">
+                               {skill}
+                            </span>
+                          )) || <p className="text-xs text-slate-400 font-medium">No skills provided.</p>}
+                       </div>
+
+                       <h4 className="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest leading-relaxed">Candidate Core Message / Cover Letter</h4>
+                       <p className="p-4 bg-slate-50 text-slate-600 rounded-xl text-sm italic font-medium leading-relaxed border border-slate-100 whitespace-pre-wrap">
+                         {app.coverLetter || "No message provided."}
+                       </p>
+                    </div>
+
+                    <div className="flex-1 min-w-[300px]">
+                       <div className="flex flex-col gap-3 h-full">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Recruiter Feedback / Response</label>
+                          <textarea 
+                              className="w-full flex-1 min-h-[150px] p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder:text-slate-400"
+                              placeholder="Write a message or feedback to send to the candidate when updating their status..."
+                              value={feedbackMap[app._id] || ''}
+                              onChange={(e) => setFeedbackMap({...feedbackMap, [app._id]: e.target.value})}
+                          />
+                       </div>
                     </div>
                  </div>
               </div>
