@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import logo from '../assets/logo.png';
 import heroBg from '../assets/images/bridge-hero.png';
 import teamImg from '../assets/images/team.png';
 import authBg from '../assets/images/auth-bg.png';
@@ -111,8 +112,8 @@ const Home = () => {
              <div className="flex flex-col items-center justify-center w-full lg:w-[20%]">
                 <div className="hidden lg:flex flex-col items-center gap-6">
                    <div className="h-24 w-px bg-gradient-to-b from-transparent to-blue-200"></div>
-                   <div className="w-16 h-16 bg-white shadow-xl rounded-2xl flex items-center justify-center border border-slate-100">
-                      <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">T</div>
+                   <div className="w-16 h-16 bg-white shadow-xl rounded-2xl flex items-center justify-center border border-slate-100 overflow-hidden">
+                      <img src={logo} alt="TalentBridge Logo" className="w-full h-full object-contain p-2" />
                    </div>
                    <div className="h-24 w-px bg-gradient-to-t from-transparent to-blue-200"></div>
                 </div>

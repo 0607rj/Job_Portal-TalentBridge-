@@ -17,10 +17,84 @@ import interviewRoutes from './routes/interviewRoutes.js';
 import resumeRoutes from './routes/resumeRoutes.js';
 import mockInterviewRoutes from './routes/mockInterviewRoutes.js';
 
+import http from 'http';
+import { Server } from 'socket.io';
+
 // --- Connect to Database ---
 connectDB();
 
 const app = express();
+const server = http.createServer(app);
+
+// Initialize Socket.io with optimized settings for Render
+const io = new Server(server, {
+  cors: {
+     // Allow both local development and production URLs
+    origin: [
+      "http://localhost:5173", 
+      "http://localhost:3000", 
+      process.env.FRONTEND_URL,
+      "https://job-portal-talentbridge.onrender.com"
+    ].filter(Boolean),
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+  transports: ['websocket', 'polling'], // Support both, but client will favor websocket
+  path: '/socket.io/'
+});
+
+// --- Socket signaling logic ---
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  // Users join their own ID room to receive direct notifications
+  socket.on('register-user', (userId) => {
+    socket.join(userId);
+    console.log(`User registered in private room: ${userId}`);
+  });
+
+  // Recruiter triggers a call to a specific candidate
+  socket.on('initiate-call', ({ targetUserId, recruiterName, interviewId, jobTitle }) => {
+    console.log(`Call initiated from ${recruiterName} to ${targetUserId}`);
+    socket.to(targetUserId).emit('call-notification', {
+      recruiterName,
+      interviewId,
+      jobTitle
+    });
+  });
+
+  socket.on('join-room', (roomId) => {
+    socket.join(roomId);
+    socket.roomId = roomId; // Store roomId on socket for disconnect cleanup
+    console.log(`User ${socket.id} joined room ${roomId}`);
+    socket.to(roomId).emit('user-connected', socket.id);
+  });
+
+  socket.on('leave-room', (roomId) => {
+    socket.leave(roomId);
+    console.log(`User ${socket.id} left room ${roomId}`);
+    socket.to(roomId).emit('user-disconnected', socket.id);
+  });
+
+  socket.on('offer', ({ offer, roomId }) => {
+    socket.to(roomId).emit('offer', { offer, senderId: socket.id });
+  });
+
+  socket.on('answer', ({ answer, roomId }) => {
+    socket.to(roomId).emit('answer', { answer, senderId: socket.id });
+  });
+
+  socket.on('ice-candidate', ({ candidate, roomId }) => {
+    socket.to(roomId).emit('ice-candidate', { candidate, senderId: socket.id });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+    if (socket.roomId) {
+      socket.to(socket.roomId).emit('user-disconnected', socket.id);
+    }
+  });
+});
 
 // --- Rate Limiting (Brute Force Protection) ---
 const authLimiter = rateLimit({
@@ -78,6 +152,6 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`>>> TalentBridge API running on port ${PORT} | ENV: ${process.env.NODE_ENV || 'development'}`);
 });

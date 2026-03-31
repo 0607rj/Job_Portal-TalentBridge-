@@ -1,0 +1,1052 @@
+[
+  {
+    "title": "Job Title 1",
+    "company": "Company 2",
+    "description": "Detailed description for Job 1",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 1,
+      "max": 3
+    },
+    "salary": {
+      "min": 31000,
+      "max": 51000,
+      "currency": "INR"
+    },
+    "location": "Bangalore",
+    "jobType": "Part-time",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Remote",
+    "category": "Data Science",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 2,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 2",
+    "company": "Company 3",
+    "description": "Detailed description for Job 2",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 2,
+      "max": 4
+    },
+    "salary": {
+      "min": 32000,
+      "max": 52000,
+      "currency": "INR"
+    },
+    "location": "Delhi",
+    "jobType": "Contract",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Hybrid",
+    "category": "Design",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 4,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 3",
+    "company": "Company 4",
+    "description": "Detailed description for Job 3",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 3,
+      "max": 5
+    },
+    "salary": {
+      "min": 33000,
+      "max": 53000,
+      "currency": "INR"
+    },
+    "location": "Remote",
+    "jobType": "Internship",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "On-site",
+    "category": "Marketing",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 5,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 4",
+    "company": "Company 5",
+    "description": "Detailed description for Job 4",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 4,
+      "max": 6
+    },
+    "salary": {
+      "min": 34000,
+      "max": 54000,
+      "currency": "INR"
+    },
+    "location": "Mumbai",
+    "jobType": "Freelance",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Remote",
+    "category": "Sales",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 4,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 5",
+    "company": "Company 1",
+    "description": "Detailed description for Job 5",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 0,
+      "max": 2
+    },
+    "salary": {
+      "min": 35000,
+      "max": 55000,
+      "currency": "INR"
+    },
+    "location": "Bangalore",
+    "jobType": "Full-time",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Hybrid",
+    "category": "HR",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 1,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 6",
+    "company": "Company 2",
+    "description": "Detailed description for Job 6",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 1,
+      "max": 3
+    },
+    "salary": {
+      "min": 36000,
+      "max": 56000,
+      "currency": "INR"
+    },
+    "location": "Delhi",
+    "jobType": "Part-time",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "On-site",
+    "category": "Finance",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 4,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 7",
+    "company": "Company 3",
+    "description": "Detailed description for Job 7",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 2,
+      "max": 4
+    },
+    "salary": {
+      "min": 37000,
+      "max": 57000,
+      "currency": "INR"
+    },
+    "location": "Remote",
+    "jobType": "Contract",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Remote",
+    "category": "Operations",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 1,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 8",
+    "company": "Company 4",
+    "description": "Detailed description for Job 8",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 3,
+      "max": 5
+    },
+    "salary": {
+      "min": 38000,
+      "max": 58000,
+      "currency": "INR"
+    },
+    "location": "Mumbai",
+    "jobType": "Internship",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Hybrid",
+    "category": "Customer Support",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 3,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 9",
+    "company": "Company 5",
+    "description": "Detailed description for Job 9",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 4,
+      "max": 6
+    },
+    "salary": {
+      "min": 39000,
+      "max": 59000,
+      "currency": "INR"
+    },
+    "location": "Bangalore",
+    "jobType": "Freelance",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "On-site",
+    "category": "Other",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 2,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 10",
+    "company": "Company 1",
+    "description": "Detailed description for Job 10",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 0,
+      "max": 2
+    },
+    "salary": {
+      "min": 40000,
+      "max": 60000,
+      "currency": "INR"
+    },
+    "location": "Delhi",
+    "jobType": "Full-time",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Remote",
+    "category": "Software Development",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 4,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 11",
+    "company": "Company 2",
+    "description": "Detailed description for Job 11",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 1,
+      "max": 3
+    },
+    "salary": {
+      "min": 41000,
+      "max": 61000,
+      "currency": "INR"
+    },
+    "location": "Remote",
+    "jobType": "Part-time",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Hybrid",
+    "category": "Data Science",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 2,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 12",
+    "company": "Company 3",
+    "description": "Detailed description for Job 12",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 2,
+      "max": 4
+    },
+    "salary": {
+      "min": 42000,
+      "max": 62000,
+      "currency": "INR"
+    },
+    "location": "Mumbai",
+    "jobType": "Contract",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "On-site",
+    "category": "Design",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 4,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 13",
+    "company": "Company 4",
+    "description": "Detailed description for Job 13",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 3,
+      "max": 5
+    },
+    "salary": {
+      "min": 43000,
+      "max": 63000,
+      "currency": "INR"
+    },
+    "location": "Bangalore",
+    "jobType": "Internship",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Remote",
+    "category": "Marketing",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 4,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 14",
+    "company": "Company 5",
+    "description": "Detailed description for Job 14",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 4,
+      "max": 6
+    },
+    "salary": {
+      "min": 44000,
+      "max": 64000,
+      "currency": "INR"
+    },
+    "location": "Delhi",
+    "jobType": "Freelance",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Hybrid",
+    "category": "Sales",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 5,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 15",
+    "company": "Company 1",
+    "description": "Detailed description for Job 15",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 0,
+      "max": 2
+    },
+    "salary": {
+      "min": 45000,
+      "max": 65000,
+      "currency": "INR"
+    },
+    "location": "Remote",
+    "jobType": "Full-time",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "On-site",
+    "category": "HR",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 3,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 16",
+    "company": "Company 2",
+    "description": "Detailed description for Job 16",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 1,
+      "max": 3
+    },
+    "salary": {
+      "min": 46000,
+      "max": 66000,
+      "currency": "INR"
+    },
+    "location": "Mumbai",
+    "jobType": "Part-time",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Remote",
+    "category": "Finance",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 3,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 17",
+    "company": "Company 3",
+    "description": "Detailed description for Job 17",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 2,
+      "max": 4
+    },
+    "salary": {
+      "min": 47000,
+      "max": 67000,
+      "currency": "INR"
+    },
+    "location": "Bangalore",
+    "jobType": "Contract",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Hybrid",
+    "category": "Operations",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 5,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 18",
+    "company": "Company 4",
+    "description": "Detailed description for Job 18",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 3,
+      "max": 5
+    },
+    "salary": {
+      "min": 48000,
+      "max": 68000,
+      "currency": "INR"
+    },
+    "location": "Delhi",
+    "jobType": "Internship",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "On-site",
+    "category": "Customer Support",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 3,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 19",
+    "company": "Company 5",
+    "description": "Detailed description for Job 19",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 4,
+      "max": 6
+    },
+    "salary": {
+      "min": 49000,
+      "max": 69000,
+      "currency": "INR"
+    },
+    "location": "Remote",
+    "jobType": "Freelance",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Remote",
+    "category": "Other",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 4,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 20",
+    "company": "Company 1",
+    "description": "Detailed description for Job 20",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 0,
+      "max": 2
+    },
+    "salary": {
+      "min": 50000,
+      "max": 70000,
+      "currency": "INR"
+    },
+    "location": "Mumbai",
+    "jobType": "Full-time",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Hybrid",
+    "category": "Software Development",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 1,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 21",
+    "company": "Company 2",
+    "description": "Detailed description for Job 21",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 1,
+      "max": 3
+    },
+    "salary": {
+      "min": 51000,
+      "max": 71000,
+      "currency": "INR"
+    },
+    "location": "Bangalore",
+    "jobType": "Part-time",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "On-site",
+    "category": "Data Science",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 4,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 22",
+    "company": "Company 3",
+    "description": "Detailed description for Job 22",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 2,
+      "max": 4
+    },
+    "salary": {
+      "min": 52000,
+      "max": 72000,
+      "currency": "INR"
+    },
+    "location": "Delhi",
+    "jobType": "Contract",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Remote",
+    "category": "Design",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 4,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 23",
+    "company": "Company 4",
+    "description": "Detailed description for Job 23",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 3,
+      "max": 5
+    },
+    "salary": {
+      "min": 53000,
+      "max": 73000,
+      "currency": "INR"
+    },
+    "location": "Remote",
+    "jobType": "Internship",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Hybrid",
+    "category": "Marketing",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 2,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 24",
+    "company": "Company 5",
+    "description": "Detailed description for Job 24",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 4,
+      "max": 6
+    },
+    "salary": {
+      "min": 54000,
+      "max": 74000,
+      "currency": "INR"
+    },
+    "location": "Mumbai",
+    "jobType": "Freelance",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "On-site",
+    "category": "Sales",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 1,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 25",
+    "company": "Company 1",
+    "description": "Detailed description for Job 25",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 0,
+      "max": 2
+    },
+    "salary": {
+      "min": 55000,
+      "max": 75000,
+      "currency": "INR"
+    },
+    "location": "Bangalore",
+    "jobType": "Full-time",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Remote",
+    "category": "HR",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 5,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 26",
+    "company": "Company 2",
+    "description": "Detailed description for Job 26",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 1,
+      "max": 3
+    },
+    "salary": {
+      "min": 56000,
+      "max": 76000,
+      "currency": "INR"
+    },
+    "location": "Delhi",
+    "jobType": "Part-time",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Hybrid",
+    "category": "Finance",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 3,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 27",
+    "company": "Company 3",
+    "description": "Detailed description for Job 27",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 2,
+      "max": 4
+    },
+    "salary": {
+      "min": 57000,
+      "max": 77000,
+      "currency": "INR"
+    },
+    "location": "Remote",
+    "jobType": "Contract",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "On-site",
+    "category": "Operations",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 5,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 28",
+    "company": "Company 4",
+    "description": "Detailed description for Job 28",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 3,
+      "max": 5
+    },
+    "salary": {
+      "min": 58000,
+      "max": 78000,
+      "currency": "INR"
+    },
+    "location": "Mumbai",
+    "jobType": "Internship",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Remote",
+    "category": "Customer Support",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 2,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 29",
+    "company": "Company 5",
+    "description": "Detailed description for Job 29",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 4,
+      "max": 6
+    },
+    "salary": {
+      "min": 59000,
+      "max": 79000,
+      "currency": "INR"
+    },
+    "location": "Bangalore",
+    "jobType": "Freelance",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "Hybrid",
+    "category": "Other",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 3,
+    "status": "Active"
+  },
+  {
+    "title": "Job Title 30",
+    "company": "Company 1",
+    "description": "Detailed description for Job 30",
+    "requirements": [
+      "Requirement 1",
+      "Requirement 2"
+    ],
+    "responsibilities": [
+      "Responsibility 1",
+      "Responsibility 2"
+    ],
+    "skills": [
+      "Skill A",
+      "Skill B"
+    ],
+    "experience": {
+      "min": 0,
+      "max": 2
+    },
+    "salary": {
+      "min": 60000,
+      "max": 80000,
+      "currency": "INR"
+    },
+    "location": "Delhi",
+    "jobType": "Full-time",
+    "isPaid": true,
+    "duration": "Permanent",
+    "workMode": "On-site",
+    "category": "Software Development",
+    "applicationDeadline": "2026-04-10T06:15:53.598Z",
+    "openings": 5,
+    "status": "Active"
+  }
+]

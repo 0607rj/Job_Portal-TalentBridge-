@@ -95,7 +95,7 @@ const BrowseJobs = () => {
         </div>
 
         {/* Filter Bar */}
-        <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           <div className="relative group">
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8] group-focus-within:text-blue-600 transition-colors" />
             <input 
@@ -128,6 +128,39 @@ const BrowseJobs = () => {
               <option value="Data Science">Data Science</option>
               <option value="Design">Design</option>
               <option value="Marketing">Marketing</option>
+              <option value="Sales">Sales</option>
+              <option value="HR">HR</option>
+              <option value="Finance">Finance</option>
+              <option value="Operations">Operations</option>
+              <option value="Customer Support">Customer Support</option>
+            </select>
+          </div>
+          <div className="relative">
+            <FiBriefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+            <select 
+              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-transparent rounded-2xl focus:bg-white focus:border-blue-600 outline-none transition-all font-medium appearance-none"
+              value={filters.jobType}
+              onChange={(e) => setFilters({...filters, jobType: e.target.value})}
+            >
+              <option value="">All Job Types</option>
+              <option value="Full-time">Full-time</option>
+              <option value="Part-time">Part-time</option>
+              <option value="Contract">Contract</option>
+              <option value="Internship">Internship</option>
+              <option value="Freelance">Freelance</option>
+            </select>
+          </div>
+          <div className="relative">
+            <FiFilter className="absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+            <select 
+              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-transparent rounded-2xl focus:bg-white focus:border-blue-600 outline-none transition-all font-medium appearance-none"
+              value={filters.workMode}
+              onChange={(e) => setFilters({...filters, workMode: e.target.value})}
+            >
+              <option value="">All Work Modes</option>
+              <option value="On-site">On-site</option>
+              <option value="Remote">Remote</option>
+              <option value="Hybrid">Hybrid</option>
             </select>
           </div>
           <button 
@@ -152,8 +185,10 @@ const BrowseJobs = () => {
               <div key={job._id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col justify-between">
                 <div>
                   <div className="flex justify-between items-start mb-6">
-                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center font-bold text-blue-600 text-xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-                      {job.company[0]}
+                    <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center font-bold text-blue-600 text-xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 overflow-hidden shadow-sm">
+                      {job.companyLogo ? (
+                        <img src={job.companyLogo} alt={job.company} className="w-full h-full object-cover" />
+                      ) : job.company[0]}
                     </div>
                     <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold border border-blue-100">
                       {job.jobType}
@@ -170,7 +205,7 @@ const BrowseJobs = () => {
                       <FiMapPin className="text-[#94a3b8]" /> {job.location} • {job.workMode}
                     </div>
                     <div className="flex items-center gap-3 text-sm text-[#475569] font-medium">
-                      <FiDollarSign className="text-[#94a3b8]" /> ${job.salary.min} - ${job.salary.max} / Year
+                      <FiDollarSign className="text-[#94a3b8]" /> ₹{job.salary.min} - ₹{job.salary.max} / Year
                     </div>
                   </div>
                 </div>

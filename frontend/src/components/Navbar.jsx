@@ -1,7 +1,9 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiLogOut, FiMenu, FiX, FiUser, FiChevronDown, FiBell, FiSearch } from 'react-icons/fi';
-import { useState, useEffect } from 'react';
+import { FiLogOut, FiMenu, FiX, FiUser, FiChevronDown, FiBell, FiSearch, FiVideo, FiPhoneIncoming, FiPhoneOff } from 'react-icons/fi';
+import { useState, useEffect, useRef } from 'react';
+import logo from '../assets/logo.png';
+import io from 'socket.io-client';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout, isCandidate, isRecruiter } = useAuth();
@@ -10,16 +12,51 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-
-  const isHomePage = location.pathname === '/';
+  const [incomingCall, setIncomingCall] = useState(null);
+  const socketRef = useRef();
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+
+    if (isAuthenticated && user?._id) {
+       // Clean the URL if it has /api suffix
+       const socketBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api$/, '');
+       
+       socketRef.current = io(socketBaseUrl, {
+          transports: ['websocket'],
+          reconnection: true,
+          reconnectionAttempts: 5,
+          timeout: 20000
+       });
+       
+       socketRef.current.emit('register-user', user._id);
+
+       socketRef.current.on('call-notification', (data) => {
+          setIncomingCall(data);
+          // Play notification sound
+          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+          audio.play().catch(e => console.log('Audio blocked by browser policy'));
+       });
+    }
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (socketRef.current) socketRef.current.disconnect();
+    };
+  }, [isAuthenticated, user]);
+
+  const handleAcceptCall = () => {
+    const interviewId = incomingCall.interviewId;
+    setIncomingCall(null);
+    navigate(`/interview/${interviewId}`);
+  };
+
+  const handleDeclineCall = () => {
+    setIncomingCall(null);
+  };
 
   const handleLogout = () => {
     logout();
@@ -27,6 +64,8 @@ const Navbar = () => {
     setUserMenuOpen(false);
   };
 
+  const isHomePage = location.pathname === '/';
+  
   const navbarBg = isHomePage && !scrolled
     ? 'bg-transparent'
     : 'bg-white/80 backdrop-blur-xl shadow-sm border-b border-slate-200/50';
@@ -44,17 +83,68 @@ const Navbar = () => {
     : 'text-blue-600';
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${navbarBg} ${scrolled ? 'py-3' : 'py-5'}`}>
+    <>
+      {/* Incoming Call Overlay */}
+      {incomingCall && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-500">
+          <div className="bg-white rounded-[40px] p-8 md:p-12 w-full max-w-lg shadow-[0_25px_100px_-15px_rgba(0,0,0,0.4)] border border-white/20 relative overflow-hidden group">
+            
+            {/* Pulsing Background Ring */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/5 rounded-full animate-ping opacity-20 pointer-events-none"></div>
+            
+            <div className="relative text-center">
+              <div className="inline-flex relative mb-8">
+                 <div className="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center text-white scale-110 shadow-2xl shadow-blue-500/40 z-10">
+                    <FiPhoneIncoming size={40} className="animate-bounce" />
+                 </div>
+                 <div className="absolute inset-0 rounded-full border-2 border-blue-500 animate-ping opacity-30"></div>
+                 <div className="absolute inset-x-0 -top-4 text-[10px] font-black uppercase text-blue-500 tracking-[0.4em] animate-pulse">
+                    Live Uplink Request
+                 </div>
+              </div>
+
+              <h2 className="text-3xl font-black text-slate-900 mb-2 font-sans tracking-tight">
+                {incomingCall.recruiterName}
+              </h2>
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mb-8">
+                 Interview Requested: <span className="text-blue-600">{incomingCall.jobTitle}</span>
+              </p>
+
+              <div className="flex gap-4">
+                 <button 
+                   onClick={handleDeclineCall}
+                   className="flex-1 py-5 bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all flex items-center justify-center gap-2 border border-slate-200"
+                 >
+                    <FiPhoneOff size={18} /> Ignore
+                 </button>
+                 <button 
+                   onClick={handleAcceptCall}
+                   className="flex-3 py-5 bg-blue-600 hover:bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-xl shadow-blue-500/30 hover:-translate-y-1 flex items-center justify-center gap-2 group"
+                 >
+                    <FiVideo size={20} className="group-hover:rotate-12 transition-transform" /> Join Live Stage Now
+                 </button>
+              </div>
+              
+              <p className="mt-8 text-[9px] font-bold text-slate-400 uppercase tracking-tighter flex items-center justify-center gap-2">
+                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div> 
+                 Encrypted WebRTC P2P Session Ready
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${navbarBg} ${scrolled ? 'py-3' : 'py-5'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14">
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className={`group flex items-center gap-2.5 outline-none`}>
               <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform duration-300">
-                  <span className="text-white text-xl font-bold">T</span>
+                <div className="w-10 h-10 bg-white shadow-md border border-slate-100 rounded-xl overflow-hidden flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <img src={logo} alt="TalentBridge Logo" className="w-full h-full object-contain p-1" />
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-sm"></div>
               </div>
               <span className={`text-xl lg:text-2xl font-bold tracking-tight ${logoColor} transition-colors duration-300`}>
                 Talent<span className="font-bold opacity-80 text-indigo-500">Bridge</span>
@@ -295,6 +385,7 @@ const Navbar = () => {
         </div>
       )}
     </nav>
+    </>
   );
 };
 

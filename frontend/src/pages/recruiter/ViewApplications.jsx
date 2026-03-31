@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { applicationAPI, jobAPI, interviewAPI } from '../../services/api';
-import { FiUser, FiFileText, FiCalendar, FiCheckCircle, FiXCircle, FiClock, FiMail, FiPhone, FiExternalLink, FiSearch, FiFilter } from 'react-icons/fi';
+import { FiUser, FiFileText, FiCalendar, FiCheckCircle, FiXCircle, FiClock, FiMail, FiPhone, FiExternalLink, FiSearch, FiFilter, FiActivity, FiMessageSquare, FiUsers, FiVideo } from 'react-icons/fi';
 
 const ViewApplications = ({ defaultJobId }) => {
   const { jobId: urlId } = useParams();
@@ -14,10 +14,10 @@ const ViewApplications = ({ defaultJobId }) => {
   const [selectedApp, setSelectedApp] = useState(null);
   const [feedbackMap, setFeedbackMap] = useState({});
   const [interviewData, setInterviewData] = useState({
-    title: 'Initial Interview',
+    title: 'Technical Interview',
     date: '',
     time: '',
-    location: 'Video Call (Jitsi)',
+    location: 'Video Call (TalentBridge)',
   });
 
   useEffect(() => {
@@ -44,7 +44,7 @@ const ViewApplications = ({ defaultJobId }) => {
     try {
       const note = feedbackMap[appId] || '';
       await applicationAPI.updateApplicationStatus(appId, { status, note });
-      toast.success(`Application marked as ${status}`);
+      toast.success(`Applicant status updated to: ${status}`);
       setFeedbackMap({...feedbackMap, [appId]: ''});
       fetchJobAndApplications();
     } catch (err) {
@@ -67,7 +67,7 @@ const ViewApplications = ({ defaultJobId }) => {
         meetingLink
       });
 
-      toast.success('Interview scheduled successfully!');
+      toast.success('Interview scheduled successfully');
       setShowScheduleModal(false);
       fetchJobAndApplications();
     } catch (err) {
@@ -76,9 +76,9 @@ const ViewApplications = ({ defaultJobId }) => {
   };
 
   if (loading) return (
-     <div className="flex flex-col items-center justify-center min-h-screen">
+     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
         <div className="w-10 h-10 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-        <p className="text-slate-500">Loading applications...</p>
+        <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Loading applications...</p>
      </div>
   );
 
@@ -86,128 +86,157 @@ const ViewApplications = ({ defaultJobId }) => {
     <div className="min-h-screen bg-slate-50 pt-24 pb-12 font-sans px-4 lg:px-8">
       <div className="max-w-7xl mx-auto">
         
-        {/* Header */}
-        <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        {/* Header Section */}
+        <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-8 bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
            <div>
-              <Link to="/recruiter/jobs" className="text-blue-600 text-sm font-bold flex items-center gap-2 mb-4 hover:underline">
+              <Link to="/recruiter/jobs" className="text-xs font-bold text-blue-600 flex items-center gap-2 mb-4 hover:underline transition-all">
                  ← Back to Job Postings
               </Link>
-              <h1 className="text-3xl font-bold text-slate-900">{jobId === 'all' ? 'All Candidates' : `Applications for ${job?.title}`}</h1>
-              <p className="text-slate-500 mt-1">Review your candidates and move them to the next stage.</p>
+              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+                {jobId === 'all' ? 'All Applications' : job?.title}
+              </h1>
+              <p className="text-slate-500 mt-1 font-medium flex items-center gap-2">
+                <FiActivity size={18} className="text-blue-600" /> Reviewing candidates
+              </p>
            </div>
            
-           <div className="flex bg-white rounded-xl shadow-sm border p-4 items-center gap-8">
-              <div className="text-center">
-                 <p className="text-2xl font-bold text-slate-900">{applications.length}</p>
-                 <p className="text-xs font-bold text-slate-400 uppercase">Total Applicants</p>
+           <div className="flex gap-8 divide-x divide-slate-100">
+              <div className="text-center px-4">
+                 <p className="text-3xl font-bold text-slate-900">{applications.length}</p>
+                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Total Applicants</p>
+              </div>
+              <div className="text-center px-8">
+                 <p className="text-3xl font-bold text-emerald-600">{applications.filter(a => a.status === 'Shortlisted').length}</p>
+                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Shortlisted</p>
               </div>
            </div>
         </div>
 
-        {/* List */}
+        {/* Applications List */}
         <div className="space-y-6">
            {applications.length > 0 ? applications.map((app) => (
-              <div key={app._id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-10 transition-all hover:border-blue-200">
-                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+              <div key={app._id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 group transition-all hover:border-blue-500">
+                 
+                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-8">
                     
-                    {/* User Profile Info */}
-                    <div className="flex items-start gap-6">
-                       <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-2xl font-bold text-slate-600 overflow-hidden">
+                    {/* Profile Section */}
+                    <div className="flex items-start gap-6 flex-1">
+                       <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center text-3xl font-black text-slate-600 shadow-inner overflow-hidden shrink-0 border border-slate-200 group-hover:border-blue-200 transition-all">
                           {app.candidate?.avatar ? (
                             <img src={app.candidate.avatar} alt="" className="w-full h-full object-cover" />
                           ) : app.candidate?.name?.[0]}
                        </div>
                        <div>
-                          <h3 className="text-xl font-bold text-slate-900">{app.candidate?.name}</h3>
-                          {jobId === 'all' && (
-                            <div className="mt-1 mb-2">
-                               <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-widest border border-blue-100">
-                                 Role: {app.job?.title || 'Unknown'}
+                          <h3 className="text-2xl font-bold text-slate-900 mb-1">{app.candidate?.name}</h3>
+                          <div className="flex flex-wrap items-center gap-3 mb-4">
+                            <span className={`px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
+                                app.status === 'Shortlisted' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 
+                                app.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border-rose-100' :
+                                app.status === 'Under Review' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                                'bg-blue-50 text-blue-700 border-blue-100'
+                            }`}>
+                               Status: {app.status}
+                            </span>
+                            {jobId === 'all' && (
+                               <span className="text-[10px] bg-slate-900 text-white px-4 py-1 rounded-full font-bold uppercase tracking-widest">
+                                 Job: {app.job?.title?.split(' ')[0] || 'Unknown'}
                                </span>
-                            </div>
-                          )}
-                          <p className="text-blue-600 font-bold text-[10px] uppercase tracking-widest">{app.status}</p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 mt-4">
-                             <div className="flex items-center gap-2 text-sm text-slate-500"><FiMail className="text-slate-300" /> {app.candidate?.email}</div>
-                             <div className="flex items-center gap-2 text-sm text-slate-500"><FiPhone className="text-slate-300" /> {app.candidate?.phone || 'No phone'}</div>
-                             <div className="flex items-center gap-2 text-sm text-slate-500"><FiCalendar className="text-slate-300" /> Applied: {new Date(app.createdAt).toLocaleDateString()}</div>
+                            )}
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                             <div className="flex items-center gap-3 text-xs font-bold text-slate-500">
+                                <FiMail className="text-slate-400 group-hover:text-blue-600 transition-colors" /> {app.candidate?.email}
+                             </div>
+                             <div className="flex items-center gap-3 text-xs font-bold text-slate-500">
+                                <FiPhone className="text-slate-400 group-hover:text-blue-600 transition-colors" /> {app.candidate?.phone || 'No phone'}
+                             </div>
+                             <div className="flex items-center gap-3 text-xs font-bold text-slate-500">
+                                <FiCalendar className="text-slate-400 group-hover:text-blue-600 transition-colors" /> Applied: {new Date(app.createdAt).toLocaleDateString()}
+                             </div>
                           </div>
                        </div>
                     </div>
 
                     {/* Actions Terminal */}
-                    <div className="flex flex-wrap items-center gap-3 pt-6 lg:pt-0 lg:border-l lg:pl-8 border-slate-100">
-                       {app.status === 'Interview Scheduled' && (
-                          <Link to={`/interview/${app._id}`} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95">
-                              Join Video Call <FiExternalLink />
-                          </Link>
-                       )}
+                    <div className="flex flex-col gap-3 min-w-[220px]">
                        {app.candidate?.profile?.resume && (
-                         <a href={app.candidate.profile.resume} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all">
+                         <a href={app.candidate.profile.resume} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 px-8 py-3.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-all shadow-md active:scale-95">
                             View Resume <FiExternalLink />
                          </a>
                        )}
+                       {app.status === 'Interview Scheduled' && (
+                          <Link to={`/interview/${app._id}`} className="flex items-center justify-center gap-2 px-8 py-3.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95">
+                              Start Interview <FiVideo />
+                          </Link>
+                       )}
                        
-                       <div className="flex gap-2">
+                       <div className="grid grid-cols-4 gap-2 mt-1">
                           <button 
                             onClick={() => handleStatusUpdate(app._id, 'Under Review')}
-                            className={`p-3 rounded-xl border transition-all ${app.status === 'Under Review' ? 'bg-amber-50 border-amber-200 text-amber-600' : 'bg-white border-slate-100 text-slate-400 hover:text-amber-500 hover:bg-amber-50 hover:border-amber-100'}`}
+                            className={`p-3 rounded-xl border flex items-center justify-center transition-all ${app.status === 'Under Review' ? 'bg-amber-50 border-amber-300 text-amber-700 shadow-inner' : 'bg-white border-slate-200 text-slate-400 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200'}`}
                             title="Under Review"
                           >
-                             <FiClock size={20} />
+                             <FiClock size={18} />
                           </button>
 
                           <button 
                             onClick={() => handleStatusUpdate(app._id, 'Shortlisted')}
-                            className={`p-3 rounded-xl border transition-all ${app.status === 'Shortlisted' ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-white border-slate-100 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 hover:border-emerald-100'}`}
+                            className={`p-3 rounded-xl border flex items-center justify-center transition-all ${app.status === 'Shortlisted' ? 'bg-emerald-50 border-emerald-300 text-emerald-700 shadow-inner' : 'bg-white border-slate-200 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'}`}
                             title="Shortlist"
                           >
-                             <FiCheckCircle size={20} />
+                             <FiCheckCircle size={18} />
                           </button>
                           
                           <button 
                             onClick={() => { setSelectedApp(app); setShowScheduleModal(true); }}
-                            className={`p-3 rounded-xl border transition-all ${app.status === 'Interview Scheduled' ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-slate-100 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 hover:border-indigo-100'}`}
+                            className={`p-3 rounded-xl border flex items-center justify-center transition-all ${app.status === 'Interview Scheduled' ? 'bg-indigo-50 border-indigo-300 text-indigo-700 shadow-inner' : 'bg-white border-slate-200 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200'}`}
                             title="Schedule Interview"
                           >
-                             <FiCalendar size={20} />
+                             <FiCalendar size={18} />
                           </button>
 
                           <button 
                              onClick={() => handleStatusUpdate(app._id, 'Rejected')}
-                             className={`p-3 rounded-xl border transition-all ${app.status === 'Rejected' ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-white border-slate-100 text-slate-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-100'}`}
-                             title="Reject"
+                             className={`p-3 rounded-xl border flex items-center justify-center transition-all ${app.status === 'Rejected' ? 'bg-rose-50 border-rose-300 text-rose-700 shadow-inner' : 'bg-white border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200'}`}
+                             title="Reject Application"
                           >
-                             <FiXCircle size={20} />
+                             <FiXCircle size={18} />
                           </button>
                        </div>
                     </div>
                  </div>
                  
-                 {/* Experience / Insights */}
-                 <div className="mt-8 pt-6 border-t border-slate-50 flex flex-col lg:flex-row gap-8">
-                    <div className="flex-1">
-                       <h4 className="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest leading-relaxed">Candidate Skills</h4>
-                       <div className="flex flex-wrap gap-2 mb-6">
-                          {app.candidate?.profile?.skills?.map((skill, i) => (
-                            <span key={i} className="px-3 py-1 bg-slate-50 text-slate-700 text-xs font-bold rounded-lg border border-slate-100">
-                               {skill}
-                            </span>
-                          )) || <p className="text-xs text-slate-400 font-medium">No skills provided.</p>}
+                 {/* Internal Details */}
+                 <div className="mt-8 pt-8 border-t border-slate-50 flex flex-col xl:flex-row gap-10">
+                    <div className="flex-1 space-y-6">
+                       <div>
+                          <h4 className="text-[10px] font-bold text-slate-400 uppercase mb-3 tracking-widest leading-relaxed">Candidate Skills</h4>
+                          <div className="flex flex-wrap gap-2">
+                             {app.candidate?.profile?.skills?.map((skill, i) => (
+                               <span key={i} className="px-3 py-1 bg-slate-50 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition-colors">
+                                  {skill}
+                               </span>
+                             )) || <p className="text-xs text-slate-400 font-bold italic">No skills listed.</p>}
+                          </div>
                        </div>
 
-                       <h4 className="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest leading-relaxed">Candidate Core Message / Cover Letter</h4>
-                       <p className="p-4 bg-slate-50 text-slate-600 rounded-xl text-sm italic font-medium leading-relaxed border border-slate-100 whitespace-pre-wrap">
-                         {app.coverLetter || "No message provided."}
-                       </p>
+                       <div>
+                          <h4 className="text-[10px] font-bold text-slate-400 uppercase mb-3 tracking-widest leading-relaxed">Cover Letter / Message</h4>
+                          <div className="p-5 bg-slate-50 text-slate-600 rounded-xl text-sm italic font-medium leading-relaxed border border-slate-200 group-hover:bg-white transition-colors">
+                            {app.coverLetter || "No message provided."}
+                          </div>
+                       </div>
                     </div>
 
-                    <div className="flex-1 min-w-[300px]">
+                    <div className="flex-1 xl:max-w-[360px]">
                        <div className="flex flex-col gap-3 h-full">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Recruiter Feedback / Response</label>
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2 leading-relaxed">
+                            <FiMessageSquare className="text-blue-600" /> Recruiter Feedback (Internal)
+                          </label>
                           <textarea 
-                              className="w-full flex-1 min-h-[150px] p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm placeholder:text-slate-400"
-                              placeholder="Write a message or feedback to send to the candidate when updating their status..."
+                              className="w-full flex-1 min-h-[140px] p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none text-sm font-bold placeholder:text-slate-400 transition-all shadow-inner"
+                              placeholder="Write internal notes or feedback for this candidate..."
                               value={feedbackMap[app._id] || ''}
                               onChange={(e) => setFeedbackMap({...feedbackMap, [app._id]: e.target.value})}
                           />
@@ -216,42 +245,50 @@ const ViewApplications = ({ defaultJobId }) => {
                  </div>
               </div>
            )) : (
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-20 text-center">
-                 <p className="text-slate-500">No applications were found for this job position.</p>
+              <div className="bg-white rounded-2xl border border-slate-200 p-20 text-center shadow-sm">
+                 <FiUsers className="mx-auto w-16 h-16 text-slate-100 mb-6" />
+                 <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">No Applications Yet</p>
+                 <p className="text-xs text-slate-400 mt-2 font-medium italic">No candidates have applied for this job yet.</p>
               </div>
            )}
         </div>
       </div>
 
-      {/* Schedule Modal */}
+      {/* Schedule Interview Modal */}
       {showScheduleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm shadow-indigo-100" onClick={() => setShowScheduleModal(false)}></div>
-           <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl p-8">
-              <h2 className="text-xl font-bold text-slate-900 mb-6">Schedule Interview</h2>
-              <form onSubmit={handleScheduleSubmit} className="space-y-4">
+           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm shadow-xl" onClick={() => setShowScheduleModal(false)}></div>
+           <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 transition-all duration-300">
+              <div className="flex items-center gap-4 mb-6">
+                 <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 border border-blue-100">
+                    <FiCalendar size={24} />
+                 </div>
+                 <h2 className="text-xl font-bold text-slate-900">Schedule Interview</h2>
+              </div>
+              
+              <form onSubmit={handleScheduleSubmit} className="space-y-6">
                  <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Meeting Title</label>
-                    <input type="text" className="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 font-bold focus:ring-2 focus:ring-blue-500 outline-none" 
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-wider">Interview Title</label>
+                    <input type="text" className="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
                       value={interviewData.title} onChange={(e) => setInterviewData({...interviewData, title: e.target.value})}
                     />
                  </div>
-                 <div className="grid grid-cols-2 gap-4">
+                 <div className="grid grid-cols-1 gap-6">
                     <div>
-                      <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Date</label>
-                      <input type="date" className="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 font-bold focus:ring-2 focus:ring-blue-500 outline-none" 
+                      <label className="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-wider">Date</label>
+                      <input type="date" className="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
                         value={interviewData.date} onChange={(e) => setInterviewData({...interviewData, date: e.target.value})}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Time</label>
-                      <input type="time" className="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 font-bold focus:ring-2 focus:ring-blue-500 outline-none" 
+                      <label className="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-wider">Time</label>
+                      <input type="time" className="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
                         value={interviewData.time} onChange={(e) => setInterviewData({...interviewData, time: e.target.value})}
                       />
                     </div>
                  </div>
-                 <button type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl mt-4 hover:bg-blue-700 transition-all shadow-lg active:scale-95">
-                    Schedule and Send Link
+                 <button type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl text-sm shadow-lg hover:bg-blue-700 transition-all active:scale-95 mt-4">
+                    Schedule and Send Notification
                  </button>
               </form>
            </div>

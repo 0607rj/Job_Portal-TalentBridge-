@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FiMail, FiPhone, FiMapPin, FiGithub, FiTwitter, FiLinkedin, FiInstagram, FiArrowRight } from 'react-icons/fi';
+import logo from '../assets/logo.png';
 
 const Footer = () => {
   return (
@@ -14,8 +15,8 @@ const Footer = () => {
           {/* Brand & Mission (4 cols) */}
           <div className="lg:col-span-4 max-w-sm">
             <Link to="/" className="inline-flex items-center gap-3 mb-8 group">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-2xl shadow-blue-500/40 group-hover:scale-110 transition-transform">
-                <span className="text-white text-xl font-black italic">T</span>
+              <div className="w-10 h-10 bg-white shadow-xl rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 overflow-hidden">
+                <img src={logo} alt="TalentBridge Logo" className="w-full h-full object-contain p-1" />
               </div>
               <span className="text-2xl font-black tracking-tighter text-white">TalentBridge <span className="text-blue-500 italic">Pro</span></span>
             </Link>

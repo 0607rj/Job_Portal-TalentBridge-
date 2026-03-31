@@ -12,6 +12,10 @@ const jobSchema = new mongoose.Schema({
     required: [true, 'Please provide company name'],
     trim: true
   },
+  companyLogo: {
+    type: String,
+    default: 'https://via.placeholder.com/150?text=Logo'
+  },
   description: {
     type: String,
     required: [true, 'Please provide job description']

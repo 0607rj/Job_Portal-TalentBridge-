@@ -2,15 +2,24 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { applicationAPI } from '../services/api';
-import { FiMic, FiVideo, FiMonitor, FiLogOut, FiShield, FiUser, FiFileText, FiActivity, FiMessageSquare } from 'react-icons/fi';
+import { FiMic, FiVideo, FiMonitor, FiLogOut, FiShield, FiUser, FiFileText, FiActivity, FiMessageSquare, FiMicOff, FiVideoOff } from 'react-icons/fi';
+import io from 'socket.io-client';
 
 const InterviewRoom = () => {
   const { interviewId } = useParams();
   const { user } = useAuth();
-  const jitsiContainerRef = useRef(null);
-  const [jitsi, setJitsi] = useState(null);
   const [appData, setAppData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [stream, setStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
+  
+  const socketRef = useRef();
+  const peerRef = useRef();
+  const localVideoRef = useRef();
+  const remoteVideoRef = useRef();
+  const candidateQueue = useRef([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,123 +34,272 @@ const InterviewRoom = () => {
     };
     fetchData();
 
-    // Load Jitsi script
-    const script = document.createElement('script');
-    script.src = 'https://meet.jit.si/external_api.js';
-    script.async = true;
-    document.body.appendChild(script);
+    // Initialize Socket with cleaned URL
+    const socketBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api$/, '');
+    socketRef.current = io(socketBaseUrl, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      path: '/socket.io/'
+    });
 
-    script.onload = () => {
-      const options = {
-        roomName: `TalentBridge-Interview-Secure-${interviewId}`,
-        width: '100%',
-        height: '100%',
-        parentNode: jitsiContainerRef.current,
-        userInfo: {
-          displayName: `${user?.name} [${user?.role.toUpperCase()}]`
-        },
-        configOverwrite: {
-           startWithAudioMuted: true,
-           disableThirdPartyRequests: true,
-           prejoinPageEnabled: false,
-        },
-        interfaceConfigOverwrite: {
-           TOOLBAR_BUTTONS: [
-            'microphone', 'camera', 'desktop', 'fullscreen',
-            'fodeviceselection', 'hangup', 'chat', 'raisehand',
-            'videoquality', 'tileview', 'security'
-           ],
-           SHOW_JITSI_WATERMARK: false,
-           SHOW_WATERMARK_FOR_GUESTS: false,
-        }
-      };
-      
-      const api = new window.JitsiMeetExternalAPI('meet.jit.si', options);
-      setJitsi(api);
+    const startCall = async () => {
+      try {
+        const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        setStream(localStream);
+        if (localVideoRef.current) localVideoRef.current.srcObject = localStream;
+
+        socketRef.current.emit('join-room', interviewId);
+
+        socketRef.current.on('user-connected', (userId) => {
+          console.log('Peer connected:', userId);
+          initiateCall(localStream);
+        });
+
+        socketRef.current.on('offer', async ({ offer }) => {
+          console.log('Received offer');
+          const peer = createPeer(localStream);
+          peerRef.current = peer;
+          await peer.setRemoteDescription(new RTCSessionDescription(offer));
+          
+          // Process queued candidates
+          while(candidateQueue.current.length > 0) {
+            const candidate = candidateQueue.current.shift();
+            await peer.addIceCandidate(new RTCIceCandidate(candidate));
+          }
+
+          const answer = await peer.createAnswer();
+          await peer.setLocalDescription(answer);
+          socketRef.current.emit('answer', { answer, roomId: interviewId });
+        });
+
+        socketRef.current.on('answer', async ({ answer }) => {
+          console.log('Received answer');
+          if (peerRef.current) {
+            await peerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+            // Process queued candidates
+            while(candidateQueue.current.length > 0) {
+              const candidate = candidateQueue.current.shift();
+              await peer.addIceCandidate(new RTCIceCandidate(candidate));
+            }
+          }
+        });
+
+        socketRef.current.on('ice-candidate', async ({ candidate }) => {
+          if (peerRef.current && peerRef.current.remoteDescription) {
+            try {
+              await peerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+            } catch (e) {
+              console.error("Error adding ice candidate:", e);
+            }
+          } else {
+            candidateQueue.current.push(candidate);
+          }
+        });
+
+        socketRef.current.on('user-disconnected', (userId) => {
+          console.log('Peer disconnected:', userId);
+          setRemoteStream(null);
+          if (peerRef.current) {
+             peerRef.current.close();
+             peerRef.current = null;
+          }
+        });
+      } catch (err) {
+        console.error("Failed to get local stream or connect:", err);
+      }
     };
+
+    startCall();
 
     return () => {
-      if (jitsi) jitsi.dispose();
-      if (document.body.contains(script)) document.body.removeChild(script);
+      console.log('Cleaning up interview room...');
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      if (socketRef.current) {
+        socketRef.current.emit('leave-room', interviewId);
+        socketRef.current.disconnect();
+      }
+      if (peerRef.current) {
+        peerRef.current.close();
+      }
+      candidateQueue.current = [];
     };
-  }, [interviewId, user]);
+  }, [interviewId]);
+
+  // Handle setting remote stream to video element when it becomes available
+  useEffect(() => {
+    if (remoteStream && remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
+
+  const initiateCall = async (localStream) => {
+    console.log('Initiating call...');
+    const peer = createPeer(localStream);
+    peerRef.current = peer;
+    const offer = await peer.createOffer();
+    await peer.setLocalDescription(offer);
+    socketRef.current.emit('offer', { offer, roomId: interviewId });
+  };
+
+  const createPeer = (localStream) => {
+    const peer = new RTCPeerConnection({
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    });
+
+    localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
+
+    peer.onicecandidate = (e) => {
+      if (e.candidate) {
+        socketRef.current.emit('ice-candidate', { candidate: e.candidate, roomId: interviewId });
+      }
+    };
+
+    peer.ontrack = (e) => {
+      console.log('Received remote track');
+      setRemoteStream(e.streams[0]);
+    };
+
+    return peer;
+  };
+
+  const toggleMute = () => {
+    if (stream) {
+      stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0].enabled;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const toggleVideo = () => {
+    if (stream) {
+      stream.getVideoTracks()[0].enabled = !stream.getVideoTracks()[0].enabled;
+      setIsVideoOff(!isVideoOff);
+    }
+  };
 
   return (
-    <div className="h-screen bg-[#0a0c10] flex flex-col font-sans text-slate-300 overflow-hidden">
+    <div className="h-screen bg-slate-50 flex flex-col font-sans text-slate-700 overflow-hidden">
       
-      {/* Immersive Top Bar */}
-      <div className="h-16 bg-[#0f1116]/80 backdrop-blur-md border-b border-white/5 px-6 flex items-center justify-between z-50">
-        <div className="flex items-center gap-6">
+      {/* Professional Header */}
+      <div className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between z-50 shadow-sm">
+        <div className="flex items-center gap-8">
            <div className="flex items-center gap-3">
-              <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse shadow-[0_0_12px_rgba(59,130,246,0.5)]"></div>
-              <h1 className="font-black text-xs uppercase tracking-[0.2em] text-white">Interview Terminal <span className="text-slate-500">v4.0.2</span></h1>
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">TB</div>
+              <h1 className="font-bold text-sm tracking-tight text-slate-900">Virtual Interview <span className="text-slate-400 font-normal ml-2">| Session ID: {interviewId?.slice(-8)}</span></h1>
            </div>
            
-           <div className="hidden lg:flex items-center gap-4 pl-6 border-l border-white/10 uppercase tracking-widest text-[9px] font-bold text-slate-500">
+           <div className="hidden lg:flex items-center gap-4 pl-6 border-l border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
               <div className="flex items-center gap-2">
-                 <FiShield className="text-emerald-500" /> Secure Encryption Node
+                 <div className={`w-2 h-2 rounded-full ${remoteStream ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></div>
+                 {remoteStream ? 'Connection: Stable' : 'Awaiting Participant...'}
               </div>
               <div className="flex items-center gap-2">
-                 <FiActivity className="text-blue-500" /> Latency: Optimizing
+                 <FiShield className="text-blue-500" /> End-to-End Encrypted
               </div>
            </div>
         </div>
         
         <div className="flex items-center gap-6">
-           <div className="flex flex-col items-end">
-              <p className="text-[10px] font-black text-white uppercase tracking-tighter">{user?.name}</p>
-              <p className="text-[9px] text-blue-500 font-bold uppercase tracking-widest">{user?.role} Uplink</p>
+           <div className="flex flex-col items-end mr-2">
+              <p className="text-xs font-bold text-slate-900">{user?.name}</p>
+              <p className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">{user?.role} Access</p>
            </div>
            
-           <Link to={user?.role === 'recruiter' ? '/recruiter/dashboard' : '/candidate/dashboard'} className="px-5 py-2.5 bg-rose-500/10 hover:bg-rose-600 text-rose-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-rose-500/20 flex items-center gap-2">
-              Terminate Sync <FiLogOut size={14} />
+           <Link 
+             to={user?.role === 'recruiter' ? '/recruiter/dashboard' : '/candidate/dashboard'} 
+             className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all border border-rose-200 flex items-center gap-2"
+           >
+              Leave Session <FiLogOut size={14} />
            </Link>
         </div>
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-         {/* Main Viewport */}
-         <div className="flex-1 flex flex-col relative bg-black">
-            <div className="flex-1" ref={jitsiContainerRef}>
-               {!jitsi && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0c10]">
-                     <div className="relative mb-8">
-                        <div className="w-24 h-24 border-[3px] border-blue-600/10 border-t-blue-500 rounded-full animate-spin"></div>
-                        <FiVideo className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-500" size={32} />
-                     </div>
-                     <p className="font-black uppercase tracking-[0.3em] text-[10px] text-slate-400">Negotiating Video Protocols...</p>
+         {/* Main Video Viewport */}
+         <div className="flex-1 flex flex-col relative bg-slate-100 p-6">
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+               {/* Remote Participant Video */}
+               <div className="relative bg-white rounded-[32px] shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-200 group transition-all duration-500">
+                  {remoteStream ? (
+                    <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50">
+                       <div className="relative">
+                          <div className="w-20 h-20 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mb-6"></div>
+                          <FiUser className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] text-slate-300" size={32} />
+                       </div>
+                       <p className="text-sm font-bold text-slate-400">Waiting for participant to join...</p>
+                       <p className="text-[11px] text-slate-300 mt-2 uppercase tracking-widest">Connection Pending</p>
+                    </div>
+                  )}
+                  <div className="absolute bottom-6 left-6 px-4 py-2 bg-slate-900/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest text-slate-900">
+                     {user?.role === 'recruiter' ? 'Candidate' : 'Recruiter'} Feed
                   </div>
-               )}
+               </div>
+
+               {/* Local Self Video */}
+               <div className="relative bg-white rounded-[32px] shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-200 group">
+                  {isVideoOff ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+                       <FiVideoOff size={48} className="text-slate-700" />
+                    </div>
+                  ) : (
+                    <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover mirror" />
+                  )}
+                  
+                  <div className="absolute bottom-6 left-6 px-4 py-2 bg-slate-900/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest text-slate-900">
+                     You (Self View)
+                  </div>
+                  
+                  {/* Floating Video Controls */}
+                  <div className="absolute bottom-6 right-6 flex gap-3">
+                     <button 
+                       onClick={toggleMute}
+                       className={`w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-md transition-all shadow-lg ${isMuted ? 'bg-rose-500 text-white shadow-rose-200' : 'bg-white/90 text-slate-700 hover:bg-white border border-slate-200'}`}
+                       title={isMuted ? 'Unmute' : 'Mute'}
+                     >
+                        {isMuted ? <FiMicOff size={18} /> : <FiMic size={18} />}
+                     </button>
+                     <button 
+                       onClick={toggleVideo}
+                       className={`w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-md transition-all shadow-lg ${isVideoOff ? 'bg-rose-500 text-white shadow-rose-200' : 'bg-white/90 text-slate-700 hover:bg-white border border-slate-200'}`}
+                       title={isVideoOff ? 'Start Video' : 'Stop Video'}
+                     >
+                        {isVideoOff ? <FiVideoOff size={18} /> : <FiVideo size={18} />}
+                     </button>
+                  </div>
+               </div>
             </div>
 
-            {/* Subtle Overlay Controls Labels */}
-            {jitsi && (
-              <div className="absolute top-4 left-4 p-3 bg-black/40 backdrop-blur-md rounded-2xl border border-white/5 text-[9px] font-bold uppercase tracking-widest pointer-events-none">
-                 <p className="text-white flex items-center gap-2 mb-1">
-                   {appData?.job?.title || 'Unknown Role'}
-                 </p>
-                 <p className="text-slate-400 capitalize">
-                    {user?.role === 'recruiter' ? `Candidate: ${appData?.candidate?.name}` : `Company: ${appData?.job?.company}`}
-                 </p>
-              </div>
-            )}
+            {/* Context Floating Card */}
+            <div className="absolute top-10 left-10 p-5 bg-white/80 backdrop-blur-xl rounded-[24px] shadow-2xl shadow-slate-200/50 border border-slate-100 pointer-events-none transition-all duration-300">
+               <div className="flex items-center gap-3 mb-3">
+                  <div className="px-2 py-0.5 bg-blue-50 text-[10px] font-black text-blue-600 uppercase tracking-widest rounded-md">Live Session</div>
+                  <div className="text-[10px] font-bold text-slate-400">Started 12:00 PM</div>
+               </div>
+               <h2 className="text-lg font-black text-slate-900 mb-1">{appData?.job?.title || 'Loading Interview...'}</h2>
+               <p className="text-xs text-slate-500 font-medium">
+                  {user?.role === 'recruiter' ? `Candidate: ${appData?.candidate?.name}` : `Hiring Manager: ${appData?.recruiter?.name || 'Recruiter'}`}
+               </p>
+            </div>
          </div>
 
-         {/* Side Control Node (Metadata) */}
-         <div className="w-80 bg-[#0f1116] border-l border-white/5 flex flex-col overflow-y-auto hidden lg:flex p-6">
-            <h2 className="text-[10px] font-black uppercase text-slate-500 tracking-[0.3em] mb-8 flex items-center gap-2">
-               <FiActivity size={14} /> Briefing Matrix
+         {/* Side Briefing Node (Metadata) */}
+         <div className="w-80 bg-white border-l border-slate-200 flex flex-col overflow-y-auto hidden lg:flex p-8">
+            <h2 className="text-[11px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-10 flex items-center gap-2">
+               <FiActivity size={16} className="text-blue-600" /> Session Intelligence
             </h2>
 
-            {/* Candidate Summary Card */}
-            <div className="bg-white/5 rounded-2xl p-5 border border-white/5 mb-6">
-               <div className="flex items-center gap-4 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white text-lg font-bold">
+            {/* Candidate Identity Card */}
+            <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 mb-8 shadow-sm">
+               <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-[18px] bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-blue-200">
                      {appData?.candidate?.name?.[0] || 'C'}
                   </div>
                   <div>
-                     <p className="text-white font-black text-xs uppercase">{appData?.candidate?.name}</p>
-                     <p className="text-[10px] text-slate-400">Applicant ID: ...{interviewId?.slice(-6)}</p>
+                     <p className="text-slate-900 font-black text-sm">{appData?.candidate?.name}</p>
+                     <p className="text-[10px] text-slate-400 font-bold tracking-tight">Applicant Record Verified</p>
                   </div>
                </div>
                
@@ -150,55 +308,70 @@ const InterviewRoom = () => {
                    href={appData?.candidate?.profile?.resume} 
                    target="_blank" 
                    rel="noreferrer"
-                   className="w-full py-3 bg-white/10 hover:bg-white/20 text-slate-300 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-white/5"
+                   className="w-full py-3.5 bg-white text-slate-700 hover:bg-slate-50 rounded-2xl text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-slate-200 shadow-sm"
                  >
-                    Inspect Dossier <FiFileText />
+                    View Resume <FiFileText />
                  </a>
                )}
             </div>
 
-            {/* Role Metadata */}
-            <div className="space-y-6">
+            {/* Profile Insights */}
+            <div className="space-y-8">
                <div>
-                  <p className="text-[9px] font-bold uppercase text-slate-500 tracking-widest mb-2">Subject / Position</p>
-                  <p className="text-xs font-bold text-white">{appData?.job?.title || 'Loading Position...'}</p>
+                  <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-3">Position Context</p>
+                  <p className="text-xs font-bold text-slate-700 leading-relaxed">{appData?.job?.title || 'Synchronizing...'}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{appData?.job?.company}</p>
                </div>
                <div>
-                  <p className="text-[9px] font-bold uppercase text-slate-500 tracking-widest mb-2">Technical Core</p>
-                  <div className="flex flex-wrap gap-1.5">
+                  <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-3">Core Competencies</p>
+                  <div className="flex flex-wrap gap-2">
                      {appData?.candidate?.profile?.skills?.map((skill, i) => (
-                       <span key={i} className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[9px] font-black rounded border border-blue-500/20">{skill}</span>
-                     )) || 'No DNA profile found.'}
+                       <span key={i} className="px-3 py-1 bg-white text-slate-600 text-[10px] font-bold rounded-xl border border-slate-200 shadow-sm">{skill}</span>
+                     )) || <p className="text-xs italic text-slate-300">Awaiting profile data...</p>}
                   </div>
                </div>
             </div>
 
-            {/* Scratchpad for Interviewer */}
+            {/* Evaluation Node for Interviewer */}
             {user?.role === 'recruiter' && (
-              <div className="mt-auto pt-8">
-                 <div className="p-4 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
-                    <p className="text-[9px] font-bold uppercase text-indigo-400 tracking-widest mb-3 flex items-center gap-2">
-                       <FiMessageSquare /> Rapid Feedback Node
+              <div className="mt-auto pt-10">
+                 <div className="p-6 bg-blue-600 rounded-[28px] text-white shadow-xl shadow-blue-200">
+                    <p className="text-[10px] font-bold uppercase text-blue-100 tracking-wider mb-4 flex items-center gap-2">
+                       <FiMessageSquare /> Live Observations
                     </p>
                     <textarea 
-                      placeholder="Input real-time observations..." 
-                      className="w-full bg-transparent border-none outline-none text-xs text-indigo-100 min-h-[120px] resize-none placeholder:text-indigo-500/50"
+                       placeholder="Enter candidate feedback here..." 
+                       className="w-full bg-blue-700/50 border-none outline-none text-xs text-white placeholder:text-blue-300 min-h-[140px] resize-none p-3 rounded-xl mb-3"
                     ></textarea>
-                    <button className="w-full py-2 bg-indigo-500 text-white text-[9px] font-black uppercase tracking-widest rounded-lg mt-2">Commit Note</button>
+                    <button className="w-full py-3 bg-white text-blue-600 text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-colors shadow-lg">Save Observation</button>
                  </div>
               </div>
             )}
          </div>
       </div>
 
-      {/* Connection Floor */}
-      <div className="h-6 bg-black flex items-center justify-center gap-8 border-t border-white/5">
+      {/* Connectivity Status Bar */}
+      <div className="h-8 bg-white flex items-center justify-center gap-10 border-t border-slate-200 px-6">
          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></div>
-            <span className="text-[8px] font-bold uppercase text-slate-500 tracking-widest">Global Relay Active</span>
+            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+            <span className="text-[9px] font-bold uppercase text-slate-500 tracking-wider">Session Active</span>
          </div>
-         <span className="text-[8px] font-bold uppercase text-slate-700 tracking-tighter">Powered by Jitsi WebRTC Grid</span>
+         <div className="flex items-center gap-2">
+            <FiShield size={12} className="text-blue-600" />
+            <span className="text-[9px] font-bold uppercase text-slate-500 tracking-wider">WebRTC Secured Link</span>
+         </div>
+         <span className="text-[9px] font-bold uppercase text-slate-300 tracking-tighter hidden sm:inline">Professional Interview Environment v5.2</span>
       </div>
+      
+      <style>{`
+        .mirror {
+          transform: scaleX(-1);
+        }
+        @keyframes pulse-soft {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
+      `}</style>
     </div>
   );
 };

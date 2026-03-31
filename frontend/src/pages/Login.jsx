@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import authBg from '../assets/images/auth-bg.png';
+import logo from '../assets/logo.png';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight, FiCheckCircle } from 'react-icons/fi';
 
 const Login = () => {
@@ -63,8 +64,10 @@ const Login = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
           
           <div className="relative z-10">
-            <Link to="/" className="flex items-center gap-2 mb-12">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-bold text-xl">T</div>
+            <Link to="/" className="flex items-center gap-3 mb-12 group">
+              <div className="w-10 h-10 bg-white shadow-xl rounded-xl flex items-center justify-center overflow-hidden transition-transform group-hover:scale-110">
+                <img src={logo} alt="TalentBridge Logo" className="w-full h-full object-contain p-1" />
+              </div>
               <span className="font-bold text-2xl tracking-tight">TalentBridge</span>
             </Link>
             
@@ -96,8 +99,10 @@ const Login = () => {
         {/* Right Side - Form */}
         <div className="p-8 lg:p-16 flex flex-col justify-center">
           <div className="mb-10">
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight lg:hidden mb-8 flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-sm">T</div>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight lg:hidden mb-8 flex items-center gap-3">
+              <div className="w-10 h-10 bg-white shadow-md border border-slate-100 rounded-xl flex items-center justify-center overflow-hidden">
+                <img src={logo} alt="TalentBridge Logo" className="w-full h-full object-contain p-1" />
+              </div>
               TalentBridge
             </h1>
             <h3 className="text-2xl font-bold text-slate-900 mb-2">Sign In</h3>

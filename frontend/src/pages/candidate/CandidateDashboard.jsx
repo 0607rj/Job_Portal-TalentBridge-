@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { applicationAPI, interviewAPI, jobAPI } from '../../services/api';
-import { FiBriefcase, FiUsers, FiCalendar, FiTrendingUp, FiArrowRight, FiActivity, FiSearch, FiFileText } from 'react-icons/fi';
+import { FiBriefcase, FiUsers, FiCalendar, FiTrendingUp, FiArrowRight, FiActivity, FiSearch, FiFileText, FiClock, FiMapPin, FiCheckCircle } from 'react-icons/fi';
 
 const CandidateDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ totalApplied: 0, pending: 0, interviews: 0 });
   const [interviews, setInterviews] = useState([]);
   const [recentApps, setRecentApps] = useState([]);
+  const [recommendedJobs, setRecommendedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,20 +18,22 @@ const CandidateDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [appStats, interviewList, myApps] = await Promise.all([
+      const [appStats, interviewList, myApps, allJobs] = await Promise.all([
         applicationAPI.getApplicationStats(),
         interviewAPI.getCandidateInterviews({ upcoming: true, limit: 1 }),
-        applicationAPI.getMyApplications({ limit: 4 })
+        applicationAPI.getMyApplications({ limit: 4 }),
+        jobAPI.getAllJobs({ limit: 3 })
       ]);
 
       setStats({
         totalApplied: appStats.data.total,
-        pending: appStats.data.stats.find(s => s._id === 'Applied')?.count || 0,
+        pending: appStats.data.stats.find(s => s._id === 'Applied' || s._id === 'Under Review')?.count || 0,
         interviews: interviewList.data.count || 0
       });
 
       setInterviews(interviewList.data.interviews);
       setRecentApps(myApps.data.applications);
+      setRecommendedJobs(allJobs.data.jobs);
     } catch (err) {
       console.error('Error loading candidate dashboard:', err);
     } finally {
@@ -38,142 +41,185 @@ const CandidateDashboard = () => {
     }
   };
 
+  if (loading) return (
+     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
+        <div className="w-10 h-10 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Loading your dashboard...</p>
+     </div>
+  );
+
   return (
-    <div className="bg-slate-50 min-h-screen pt-24 pb-12 font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="bg-slate-50 min-h-screen pt-24 pb-12 font-sans px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
         
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 border-none">
-              Welcome back, {user?.name || 'Candidate'}
+               Hello, <span className="text-blue-600">{user?.name || 'Candidate'}</span>
             </h1>
-            <p className="text-slate-500 mt-1">
+            <p className="text-slate-500 mt-2 font-medium">
                Track your job applications and upcoming interviews.
             </p>
           </div>
           
           <Link
             to="/jobs"
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all shadow-md group"
+            className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg active:scale-95"
           >
-            <FiSearch className="group-hover:scale-110 transition-transform" /> Find Your Next Job
+            <FiSearch /> Find Your Next Job
           </Link>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between group hover:border-blue-500 hover:shadow-md transition-all">
               <div>
-                 <p className="text-sm font-medium text-slate-500 mb-1">Total Applications</p>
-                 <p className="text-3xl font-bold text-slate-900">{stats.totalApplied}</p>
+                 <p className="text-sm font-bold text-slate-400 uppercase mb-1 tracking-wider">Total Applications</p>
+                 <p className="text-4xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{stats.totalApplied}</p>
               </div>
-              <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><FiBriefcase size={24} /></div>
+              <div className="p-4 bg-blue-50 text-blue-600 rounded-xl"><FiBriefcase size={28} /></div>
            </div>
            
-           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between group hover:border-indigo-500 hover:shadow-md transition-all">
               <div>
-                 <p className="text-sm font-medium text-slate-500 mb-1">In Review</p>
-                 <p className="text-3xl font-bold text-slate-900">{stats.pending}</p>
+                 <p className="text-sm font-bold text-slate-400 uppercase mb-1 tracking-wider">In Review</p>
+                 <p className="text-4xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{stats.pending}</p>
               </div>
-              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><FiActivity size={24} /></div>
+              <div className="p-4 bg-indigo-50 text-indigo-600 rounded-xl"><FiActivity size={28} /></div>
            </div>
 
-           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between group hover:border-rose-500 hover:shadow-md transition-all">
               <div>
-                 <p className="text-sm font-medium text-slate-500 mb-1">Upcoming Interviews</p>
-                 <p className="text-3xl font-bold text-slate-900">{stats.interviews}</p>
+                 <p className="text-sm font-bold text-slate-400 uppercase mb-1 tracking-wider">Upcoming Interviews</p>
+                 <p className="text-4xl font-bold text-slate-900 group-hover:text-rose-600 transition-colors uppercase tracking-tight">{stats.interviews}</p>
               </div>
-              <div className="p-3 bg-rose-50 text-rose-600 rounded-lg"><FiCalendar size={24} /></div>
+              <div className="p-4 bg-rose-50 text-rose-600 rounded-xl"><FiCalendar size={28} /></div>
            </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            {/* Find Jobs Banner */}
-            <div className="bg-slate-900 rounded-2xl p-8 text-white relative overflow-hidden">
-               <div className="relative z-10">
-                  <h3 className="text-xl font-bold mb-2">Ready for your next challenge?</h3>
-                  <p className="text-slate-400 text-sm mb-6 max-w-md">Discover top job opportunities from leading companies that match your skill set.</p>
-                  <Link to="/jobs" className="inline-flex items-center gap-2 bg-white text-slate-900 px-6 py-3 rounded-lg font-bold hover:bg-blue-50 transition-all">
-                     Explore Open Jobs <FiArrowRight />
-                  </Link>
+            
+            {/* My Active Applications List */}
+            <div>
+               <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
+                     <div className="w-1 h-6 bg-blue-600 rounded-full"></div> Your Recent Applications
+                  </h3>
+                  <Link to="/applications" className="text-xs font-bold text-blue-600 hover:underline">View All</Link>
                </div>
-               <FiBriefcase className="absolute -right-8 -bottom-8 w-48 h-48 text-white/5 opacity-40 rotate-12" />
-            </div>
-
-            {/* My Recent Applications */}
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-               <h3 className="text-lg font-bold text-slate-900 mb-6">Your Recent Applications</h3>
+               
                {recentApps.length > 0 ? (
                  <div className="space-y-4">
                     {recentApps.map((app, i) => (
-                      <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-white border border-transparent shadow-sm hover:border-blue-100 transition-all group">
+                      <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:border-blue-500 transition-all group">
                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-white rounded-xl shadow-inner flex items-center justify-center font-bold text-blue-600 border border-slate-100">
-                               {app.job?.company?.name ? app.job.company.name[0] : 'J'}
+                            <div className="w-14 h-14 bg-slate-50 rounded-xl flex items-center justify-center font-bold text-blue-600 border border-slate-100 text-lg overflow-hidden group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                               {app.job?.companyLogo ? <img src={app.job.companyLogo} className="w-full h-full object-cover" /> : (app.job?.company?.[0] || 'J')}
                             </div>
                             <div>
                                <h4 className="font-bold text-slate-900">{app.job?.title || 'Job Title'}</h4>
-                               <div className="flex items-center gap-2 mt-1">
-                                  <span className="text-[10px] bg-white text-slate-500 px-2 py-0.5 rounded-full border border-slate-200 font-bold uppercase tracking-widest">{app.status}</span>
-                                  <span className="text-xs text-slate-400">• {new Date(app.createdAt).toLocaleDateString()}</span>
+                               <p className="text-xs text-slate-500 font-bold mb-2">{app.job?.company || 'Company'}</p>
+                               <div className="flex items-center gap-2">
+                                  <span className={`text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider border ${
+                                    app.status === 'Applied' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                    app.status === 'Shortlisted' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                    app.status === 'Rejected' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                                    'bg-slate-50 text-slate-400 border-slate-100'
+                                  }`}>{app.status}</span>
+                                  <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1 uppercase"><FiClock /> {new Date(app.createdAt).toLocaleDateString()}</span>
                                </div>
                             </div>
                          </div>
-                         <Link to={`/applications`} className="p-3 text-slate-400 group-hover:text-blue-600">
-                            <FiArrowRight size={20} />
-                         </Link>
+                         <div className="mt-4 sm:mt-0">
+                            <Link to={`/applications`} className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-blue-600 transition-colors">
+                               Track Application <FiArrowRight className="text-blue-600" />
+                            </Link>
+                         </div>
                       </div>
                     ))}
                  </div>
                ) : (
-                 <div className="py-12 text-center border-2 border-dashed border-slate-100 rounded-xl">
-                    <FiBriefcase className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                    <p className="text-sm text-slate-400">You haven't applied to any jobs yet.</p>
+                 <div className="py-16 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+                    <FiBriefcase className="mx-auto w-12 h-12 text-slate-200 mb-4" />
+                    <p className="text-sm text-slate-400 font-bold italic">No applications found. Start applying today!</p>
+                    <Link to="/jobs" className="mt-4 inline-block text-xs font-bold text-blue-600 underline underline-offset-4">Browse Jobs</Link>
                  </div>
                )}
+            </div>
+
+            {/* Recommended Jobs */}
+            <div>
+               <h3 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-3 mb-6">
+                  <div className="w-1 h-6 bg-indigo-600 rounded-full"></div> Recommended Jobs
+               </h3>
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {recommendedJobs.map((job) => (
+                    <div key={job._id} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
+                        <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center font-bold text-indigo-600 border border-slate-100 mb-4 overflow-hidden shadow-sm">
+                           {job.companyLogo ? <img src={job.companyLogo} className="w-full h-full object-cover" /> : (job.company?.[0] || 'J')}
+                        </div>
+                        <h4 className="font-bold text-slate-900 text-sm line-clamp-2 leading-tight mb-2 uppercase tracking-tight">{job.title}</h4>
+                        <div className="flex flex-col gap-2 mb-6">
+                           <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase"><FiMapPin className="text-blue-500" /> {job.location}</div>
+                           <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-tight text-blue-600">₹{job.salary.min} - ₹{job.salary.max}</div>
+                        </div>
+                        <Link to={`/jobs`} className="block w-full py-3 bg-slate-50 text-slate-900 border border-slate-200 text-center rounded-xl text-xs font-bold hover:bg-blue-600 hover:text-white transition-all">
+                           Job Details
+                        </Link>
+                    </div>
+                  ))}
+               </div>
             </div>
           </div>
 
           <div className="space-y-6">
-            {/* Next Interview Notification */}
-             <div className="bg-indigo-600 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden shadow-indigo-200">
-                <FiCalendar className="absolute -right-4 -bottom-4 w-32 h-32 text-white/5 opacity-40" />
-                <h3 className="font-bold mb-6 text-sm flex items-center gap-2">
-                   <FiCalendar className="text-indigo-200" /> Next Interview
+            {/* Upcoming Interview Card */}
+             <div className="bg-indigo-600 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden group">
+                <FiCalendar className="absolute -right-8 -bottom-8 w-32 h-32 text-white/5 opacity-40 rotate-12 transition-transform" />
+                <h3 className="font-bold text-sm uppercase tracking-widest mb-6 flex items-center gap-2">
+                   <FiActivity className="text-indigo-200" /> Interview Scheduled
                 </h3>
                 {interviews.length > 0 ? (
                   <div className="relative z-10">
-                     <p className="text-xs text-indigo-200 mb-1">Scheduled with</p>
-                     <h4 className="font-bold text-lg mb-4">{interviews[0].job?.company?.name || 'Company Name'}</h4>
-                     <div className="p-3 bg-white/10 rounded-lg mb-6 border border-white/10">
-                        <p className="font-bold text-sm">{new Date(interviews[0].scheduledDate).toLocaleDateString()}</p>
-                        <p className="text-xs text-indigo-100">{new Date(interviews[0].scheduledDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                     <p className="text-[10px] uppercase font-bold text-indigo-100 mb-2">Company Name</p>
+                     <h4 className="font-bold text-xl uppercase mb-6 tracking-tight line-clamp-2">{interviews[0].job?.company?.name || 'Recruiting Node'}</h4>
+                     <div className="p-4 bg-white/10 rounded-xl mb-8 border border-white/10">
+                        <div className="flex items-center gap-4 mb-2">
+                           <FiCalendar className="text-white" />
+                           <p className="font-bold text-sm">{new Date(interviews[0].scheduledDate).toLocaleDateString()}</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                           <FiClock className="text-white" />
+                           <p className="font-bold text-sm">{new Date(interviews[0].scheduledDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        </div>
                      </div>
-                     <Link to={`/interview/${interviews[0].application?._id || interviews[0].application}`} className="w-full py-3 bg-white text-indigo-700 font-bold rounded-lg text-center block text-sm shadow-lg hover:bg-slate-50 transition-all">
+                     <Link to={`/interview/${interviews[0].application?._id || interviews[0].application}`} className="w-full py-4 bg-white text-indigo-700 font-bold rounded-xl text-center block text-sm shadow-lg hover:animate-pulse transition-all">
                         Join Interview
                      </Link>
                   </div>
                 ) : (
-                  <div className="relative z-10">
-                     <p className="text-sm font-medium text-indigo-100 leading-relaxed italic">
-                        No upcoming interviews yet. Keep applying!
+                  <div className="relative z-10 py-10 text-center">
+                     <p className="text-sm font-bold text-indigo-100 leading-relaxed italic opacity-70">
+                        No upcoming interviews yet.
                      </p>
                   </div>
                 )}
             </div>
 
-            {/* Quick Profile Link */}
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            {/* Profile Update Card */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm hover:shadow-md transition-all">
                <div className="flex items-center gap-4 mb-6">
-                  <FiFileText className="text-blue-600" size={24} />
-                  <h3 className="font-bold text-slate-900">Resume Status</h3>
+                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 border border-blue-100 shadow-sm">
+                     <FiFileText size={24} />
+                  </div>
+                  <h3 className="font-bold text-slate-900">Profile Status</h3>
                </div>
-               <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-                  Make sure your resume and profile are up to date for better job recommendations.
+               <p className="text-xs text-slate-500 mb-8 leading-loose font-medium">
+                  Keep your resume and profile details active for better recommendations.
                </p>
-               <Link to="/profile" className="w-full py-3 border-2 border-slate-100 bg-slate-50 text-slate-700 font-bold rounded-lg text-center block text-sm hover:border-blue-500 hover:text-blue-600 transition-all">
+               <Link to="/profile" className="w-full py-4 bg-slate-100 text-slate-900 font-bold rounded-xl text-center block text-xs hover:bg-blue-600 hover:text-white transition-all shadow-sm">
                   Update My Profile
                </Link>
             </div>
