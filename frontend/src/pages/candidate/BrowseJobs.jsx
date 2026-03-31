@@ -187,8 +187,10 @@ const BrowseJobs = () => {
                   <div className="flex justify-between items-start mb-6">
                     <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center font-bold text-blue-600 text-xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 overflow-hidden shadow-sm">
                       {job.companyLogo ? (
-                        <img src={job.companyLogo} alt={job.company} className="w-full h-full object-cover" />
-                      ) : job.company[0]}
+                        <img src={job.companyLogo} alt={job.company} className="w-full h-full object-cover rounded-2xl" onError={(e) => { e.target.style.display='none'; }} />
+                      ) : (
+                        <span>{job.company?.[0]?.toUpperCase()}</span>
+                      )}
                     </div>
                     <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold border border-blue-100">
                       {job.jobType}

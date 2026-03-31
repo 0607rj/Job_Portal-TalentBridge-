@@ -1,5 +1,6 @@
 import Application from '../models/Application.js';
 import Job from '../models/Job.js';
+import MockInterview from '../models/MockInterview.js';
 import mongoose from 'mongoose';
 
 // @desc    Apply for a job
@@ -172,6 +173,21 @@ export const getJobApplications = async (req, res) => {
       { $group: { _id: '$status', count: { $sum: 1 } } }
     ]);
 
+    // Gather Candidate AI Mock Scores automatically
+    const appData = await Promise.all(applications.map(async (app) => {
+      const plainApp = app.toObject();
+      if (plainApp.candidate && plainApp.candidate._id) {
+        const mockStats = await MockInterview.aggregate([
+          { $match: { user: plainApp.candidate._id, status: 'Completed' } },
+          { $group: { _id: null, avgScore: { $avg: '$overallScore' } } }
+        ]);
+        if (mockStats.length > 0) {
+           plainApp.candidate.aiMockScore = Math.round(mockStats[0].avgScore);
+        }
+      }
+      return plainApp;
+    }));
+
     res.status(200).json({
       success: true,
       count: applications.length,
@@ -179,7 +195,7 @@ export const getJobApplications = async (req, res) => {
       totalPages: Math.ceil(total / limitNum),
       currentPage: pageNum,
       statusCounts,
-      applications
+      applications: appData
     });
   } catch (error) {
     console.error('Get job applications error:', error);
@@ -287,7 +303,7 @@ export const updateApplicationStatus = async (req, res) => {
             application.job.title,
             status,
             application.recruiter?.name || 'Recruiter'
-          );
+          ).catch(err => console.error('Status Email Error:', err));
         }).catch(err => console.error('Error importing email service:', err));
       }
     } catch (err) {

@@ -14,7 +14,7 @@ const jobSchema = new mongoose.Schema({
   },
   companyLogo: {
     type: String,
-    default: 'https://via.placeholder.com/150?text=Logo'
+    default: ''
   },
   description: {
     type: String,

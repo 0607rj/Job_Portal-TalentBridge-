@@ -137,6 +137,13 @@ const ViewApplications = ({ defaultJobId }) => {
                             }`}>
                                Status: {app.status}
                             </span>
+                            
+                            {app.candidate?.aiMockScore !== undefined && (
+                              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm transition-all hover:bg-emerald-100">
+                                🧠 AI Verified: {app.candidate.aiMockScore}/50
+                              </span>
+                            )}
+
                             {jobId === 'all' && (
                                <span className="text-[10px] bg-slate-900 text-white px-4 py-1 rounded-full font-bold uppercase tracking-widest">
                                  Job: {app.job?.title?.split(' ')[0] || 'Unknown'}

@@ -89,9 +89,12 @@ export const resumeAPI = {
   saveResume: (data) => api.post('resume/save', data),
 };
 
-// Mock Interview API (AI features - to be integrated later)
+// Mock Interview API — conversational AI interviewer
 export const mockInterviewAPI = {
-  generateQuestions: (data) => api.post('mock-interview/generate-questions', data),
-  analyzeAnswer: (data) => api.post('mock-interview/analyze-answer', data),
+  startInterview: (data) => api.post('mock-interview/start', data),
+  nextQuestion: (data) => api.post('mock-interview/next', data),
   saveSession: (data) => api.post('mock-interview/save-session', data),
+  getMySessions: () => api.get('mock-interview/my-sessions'),
+  getSessionById: (id) => api.get(`mock-interview/${id}`),
+  deleteSession: (id) => api.delete(`mock-interview/${id}`),
 };

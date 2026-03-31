@@ -20,6 +20,7 @@ import Profile from './pages/Profile';
 // Candidate Operational Nodes
 import BrowseJobs from './pages/candidate/BrowseJobs';
 import MyApplications from './pages/candidate/MyApplications';
+import MockInterview from './pages/candidate/MockInterview';
 
 // Recruiter Control Nodes
 import ManageJobs from './pages/recruiter/ManageJobs';
@@ -73,6 +74,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['candidate']}>
                   <MyApplications />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/candidate/mock-interview"
+              element={
+                <ProtectedRoute allowedRoles={['candidate']}>
+                  <MockInterview />
                 </ProtectedRoute>
               }
             />
