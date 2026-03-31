@@ -64,7 +64,7 @@ const CandidateDashboard = () => {
           </div>
           
           <Link
-            to="/jobs"
+            to="/candidate/jobs"
             className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg active:scale-95"
           >
             <FiSearch /> Find Your Next Job
@@ -107,7 +107,7 @@ const CandidateDashboard = () => {
                   <h3 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
                      <div className="w-1 h-6 bg-blue-600 rounded-full"></div> Your Recent Applications
                   </h3>
-                  <Link to="/applications" className="text-xs font-bold text-blue-600 hover:underline">View All</Link>
+                  <Link to="/candidate/applications" className="text-xs font-bold text-blue-600 hover:underline">View All</Link>
                </div>
                
                {recentApps.length > 0 ? (
@@ -133,7 +133,7 @@ const CandidateDashboard = () => {
                             </div>
                          </div>
                          <div className="mt-4 sm:mt-0">
-                            <Link to={`/applications`} className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-blue-600 transition-colors">
+                            <Link to="/candidate/applications" className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-blue-600 transition-colors">
                                Track Application <FiArrowRight className="text-blue-600" />
                             </Link>
                          </div>
@@ -144,7 +144,7 @@ const CandidateDashboard = () => {
                  <div className="py-16 text-center bg-white rounded-2xl border border-dashed border-slate-200">
                     <FiBriefcase className="mx-auto w-12 h-12 text-slate-200 mb-4" />
                     <p className="text-sm text-slate-400 font-bold italic">No applications found. Start applying today!</p>
-                    <Link to="/jobs" className="mt-4 inline-block text-xs font-bold text-blue-600 underline underline-offset-4">Browse Jobs</Link>
+                    <Link to="/candidate/jobs" className="mt-4 inline-block text-xs font-bold text-blue-600 underline underline-offset-4">Browse Jobs</Link>
                  </div>
                )}
             </div>
@@ -165,7 +165,7 @@ const CandidateDashboard = () => {
                            <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase"><FiMapPin className="text-blue-500" /> {job.location}</div>
                            <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-tight text-blue-600">₹{job.salary.min} - ₹{job.salary.max}</div>
                         </div>
-                        <Link to={`/jobs`} className="block w-full py-3 bg-slate-50 text-slate-900 border border-slate-200 text-center rounded-xl text-xs font-bold hover:bg-blue-600 hover:text-white transition-all">
+                        <Link to="/candidate/jobs" className="block w-full py-3 bg-slate-50 text-slate-900 border border-slate-200 text-center rounded-xl text-xs font-bold hover:bg-blue-600 hover:text-white transition-all">
                            Job Details
                         </Link>
                     </div>
@@ -208,17 +208,17 @@ const CandidateDashboard = () => {
                 )}
             </div>
 
-            {/* AI Mock Interview Entry */}
+            {/* Mock Interview Entry */}
             <div className="bg-slate-900 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden group">
                <FiActivity className="absolute -right-8 -bottom-8 w-32 h-32 text-white/5 opacity-40 rotate-12 transition-transform" />
                <h3 className="font-bold text-sm uppercase tracking-widest text-emerald-400 mb-6 flex items-center gap-2">
-                  <FiAward /> AI Practice Module
+                  <FiAward /> Interview Practice
                </h3>
                <p className="text-xs text-slate-300 font-medium leading-relaxed mb-8 opacity-80">
-                  Deploy an AI-powered technical interviewer to simulate a high-pressure corporate sync.
+                  Practice your technical and communication skills with our AI-powered mock interviewer.
                </p>
                <Link to="/candidate/mock-interview" className="w-full py-4 bg-emerald-500 text-white font-bold rounded-xl text-center block text-sm shadow-xl hover:bg-emerald-600 transition-all active:scale-95">
-                  Begin Assessment Cycle
+                  Start Practice Session
                </Link>
             </div>
 

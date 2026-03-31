@@ -354,7 +354,7 @@ const MockInterview = () => {
 
   /* ---- INTERVIEW SCREEN ---- */
   if (phase === 'interview') return (
-    <div className="min-h-screen bg-[#f8faff] flex flex-col pt-20">
+    <div className="flex-1 flex flex-col bg-[#f8faff] h-[calc(100vh-5rem)] overflow-hidden">
 
       {/* Top bar */}
       <div className="bg-white border-b border-slate-100 shadow-sm px-4 py-4 flex items-center justify-between max-w-3xl mx-auto w-full">

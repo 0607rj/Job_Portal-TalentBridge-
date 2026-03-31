@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { jobAPI, applicationAPI } from '../../services/api';
-import { FiSearch, FiMapPin, FiBriefcase, FiDollarSign, FiFilter, FiSend, FiCheckCircle, FiInfo } from 'react-icons/fi';
+import { FiSearch, FiMapPin, FiBriefcase, FiDollarSign, FiFilter, FiSend, FiCheckCircle, FiInfo, FiArrowLeft } from 'react-icons/fi';
 
 const BrowseJobs = () => {
   const [jobs, setJobs] = useState([]);
@@ -16,6 +16,7 @@ const BrowseJobs = () => {
     workMode: '',
   });
   const [selectedJob, setSelectedJob] = useState(null);
+  const [modalPhase, setModalPhase] = useState('details');
   const [applicationData, setApplicationData] = useState({
     coverLetter: '',
   });
@@ -61,6 +62,7 @@ const BrowseJobs = () => {
       });
       toast.success('Application submitted successfully!');
       setSelectedJob(null);
+      setModalPhase('details');
       setApplicationData({ coverLetter: '' });
       fetchStats();
     } catch (error) {
@@ -182,7 +184,7 @@ const BrowseJobs = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {jobs.length > 0 ? jobs.map((job) => (
-              <div key={job._id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col justify-between">
+              <div key={job._id} onClick={() => { setSelectedJob(job); setModalPhase('details'); }} className="cursor-pointer bg-white p-6 rounded-[2rem] border border-slate-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col justify-between">
                 <div>
                   <div className="flex justify-between items-start mb-6">
                     <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center font-bold text-blue-600 text-xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 overflow-hidden shadow-sm">
@@ -218,17 +220,17 @@ const BrowseJobs = () => {
                   </div>
                   {appliedJobIds.includes(job._id) ? (
                     <button 
-                      disabled
-                      className="px-5 py-2.5 bg-emerald-50 text-emerald-600 font-semibold rounded-xl flex items-center gap-2 cursor-not-allowed text-sm border border-emerald-100"
+                      onClick={(e) => { e.stopPropagation(); setSelectedJob(job); setModalPhase('details'); }}
+                      className="px-5 py-2.5 bg-emerald-50 text-emerald-600 font-semibold rounded-xl flex items-center gap-2 text-sm border border-emerald-100"
                     >
                       <FiCheckCircle /> Applied
                     </button>
                   ) : (
                     <button 
-                      onClick={() => setSelectedJob(job)}
-                      className="px-5 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 text-sm"
+                      onClick={(e) => { e.stopPropagation(); setSelectedJob(job); setModalPhase('details'); }}
+                      className="px-5 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all flex items-center gap-2 text-sm"
                     >
-                      Apply Now <FiSend className="w-4 h-4" />
+                      View Details <FiSend className="w-4 h-4" />
                     </button>
                   )}
                 </div>
@@ -244,55 +246,131 @@ const BrowseJobs = () => {
         )}
       </div>
 
-      {/* Application Modal */}
+      {/* Application Details & Apply Modal */}
       {selectedJob && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-[#0f172a]/80 backdrop-blur-md" onClick={() => setSelectedJob(null)}></div>
-          <div className="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-             <div className="bg-slate-900 p-8 text-white relative">
-                 <div className="absolute top-8 right-8 cursor-pointer opacity-50 hover:opacity-100 transition-all font-semibold text-sm" onClick={() => setSelectedJob(null)}>Close</div>
-                 <h2 className="text-2xl font-bold tracking-tight">{selectedJob.title}</h2>
-                 <p className="text-slate-400 font-medium">at {selectedJob.company}</p>
+          <div className="relative bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2.5rem] shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col overflow-x-hidden soft-scrollbar">
+             <div className="bg-slate-900 p-8 text-white relative shrink-0">
+                 <div className="absolute top-8 right-8 cursor-pointer opacity-50 hover:opacity-100 transition-all font-semibold text-sm bg-white/10 px-4 py-2 rounded-xl" onClick={() => setSelectedJob(null)}>Close X</div>
+                 <div className="flex items-center gap-6 mt-4">
+                    <div className="w-20 h-20 bg-white rounded-[1.5rem] flex items-center justify-center p-2 shadow-inner shrink-0 overflow-hidden">
+                       {selectedJob.companyLogo ? (
+                         <img src={selectedJob.companyLogo} className="w-full h-full object-contain" alt="Logo"/>
+                       ) : (
+                         <span className="text-3xl text-blue-600 font-bold">{selectedJob.company[0]}</span>
+                       )}
+                    </div>
+                    <div>
+                       <h2 className="text-2xl lg:text-3xl font-bold tracking-tight mb-2 pr-12">{selectedJob.title}</h2>
+                       <p className="text-blue-200 font-semibold">{selectedJob.company} &bull; {selectedJob.location}</p>
+                    </div>
+                 </div>
              </div>
              
-             <div className="p-8">
-                <form className="space-y-6" onSubmit={handleApply}>
+             {modalPhase === 'details' ? (
+               <div className="p-8 space-y-8 pb-12">
+                 <div>
+                   <h3 className="text-sm font-bold text-slate-800 mb-3 uppercase tracking-widest border-b border-slate-100 pb-2">About the Role</h3>
+                   <p className="text-sm font-medium text-slate-600 leading-relaxed whitespace-pre-line">{selectedJob.description}</p>
+                 </div>
+                 
+                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Salary Range</p>
+                      <p className="font-bold text-slate-800 text-sm">₹{selectedJob.salary.min} - ₹{selectedJob.salary.max}</p>
+                    </div>
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                       <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Work Mode</p>
+                       <p className="font-bold text-slate-800 text-sm">{selectedJob.workMode}</p>
+                    </div>
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                       <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Job Type</p>
+                       <p className="font-bold text-slate-800 text-sm">{selectedJob.jobType}</p>
+                    </div>
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                       <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Experience</p>
+                       <p className="font-bold text-slate-800 text-sm">{selectedJob.experience?.min}-{selectedJob.experience?.max} years</p>
+                    </div>
+                 </div>
+
+                 {selectedJob.requirements?.length > 0 && (
                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-3 ml-1">Cover Letter (Optional)</label>
-                      <textarea 
-                        required
-                        className="w-full p-6 bg-slate-50 border border-slate-100 rounded-3xl min-h-[160px] focus:bg-white focus:border-blue-600 outline-none transition-all font-medium text-sm leading-relaxed"
-                        placeholder="Detail your engineering prowess and why you're a fit for this directive..."
-                        value={applicationData.coverLetter}
-                        onChange={(e) => setApplicationData({...applicationData, coverLetter: e.target.value})}
-                      ></textarea>
+                     <h3 className="text-sm font-bold text-slate-800 mb-3 uppercase tracking-widest border-b border-slate-100 pb-2">Requirements</h3>
+                     <ul className="list-disc pl-5 space-y-2 text-sm font-medium text-slate-600">
+                       {selectedJob.requirements.map((r, i) => <li key={i}>{r}</li>)}
+                     </ul>
                    </div>
+                 )}
 
-                   <div className="bg-slate-50 p-6 rounded-3xl border border-dashed border-slate-200">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8] mb-2">Resume Module</p>
-                      <div className="flex items-center justify-between">
-                         <p className="text-xs text-slate-500 font-bold italic line-clamp-1">
-                           {import.meta.env.USER_RESUME || 'System will use your Profile Resume'}
-                         </p>
-                         <Link to="/profile" className="text-[10px] font-black text-blue-600 uppercase hover:underline">Edit Profile [→]</Link>
-                      </div>
+                 {selectedJob.responsibilities?.length > 0 && (
+                   <div>
+                     <h3 className="text-sm font-bold text-slate-800 mb-3 uppercase tracking-widest border-b border-slate-100 pb-2">Responsibilities</h3>
+                     <ul className="list-disc pl-5 space-y-2 text-sm font-medium text-slate-600">
+                       {selectedJob.responsibilities.map((r, i) => <li key={i}>{r}</li>)}
+                     </ul>
                    </div>
+                 )}
+                 
+                 <div className="pt-8 border-t border-slate-100 flex justify-end gap-4 mt-8">
+                    {appliedJobIds.includes(selectedJob._id) ? (
+                       <button disabled className="px-8 py-4 bg-emerald-50 text-emerald-600 font-bold rounded-2xl flex items-center justify-center gap-3 cursor-not-allowed border border-emerald-100 w-full lg:w-auto">
+                         <FiCheckCircle size={20}/> Already Applied
+                       </button>
+                    ) : (
+                       <button onClick={() => setModalPhase('apply')} className="w-full lg:w-auto px-12 py-4 bg-blue-600 text-white font-bold rounded-2xl flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 text-center">
+                         Proceed to Apply <FiArrowLeft className="rotate-180" />
+                       </button>
+                    )}
+                 </div>
+               </div>
+             ) : (
+               <div className="p-8 pb-12">
+                  <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
+                    <button onClick={() => setModalPhase('details')} className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all">
+                      <FiArrowLeft />
+                    </button>
+                    <p className="font-bold text-slate-800 uppercase tracking-widest text-xs">Application Form</p>
+                  </div>
 
-                   <p className="text-xs text-slate-500 font-medium flex gap-2 items-center bg-blue-50 p-4 rounded-xl">
-                     <FiCheckCircle className="text-blue-500 shrink-0" /> Your profile details and resume will be automatically shared with the employer.
-                   </p>
+                  <form className="space-y-6" onSubmit={handleApply}>
+                     <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-3 ml-1">Cover Letter (Optional)</label>
+                        <textarea 
+                          required
+                          className="w-full p-6 bg-slate-50 border border-slate-100 rounded-3xl min-h-[160px] focus:bg-white focus:border-blue-600 outline-none transition-all font-medium text-sm leading-relaxed"
+                          placeholder="Detail your engineering prowess and why you're a fit for this directive..."
+                          value={applicationData.coverLetter}
+                          onChange={(e) => setApplicationData({...applicationData, coverLetter: e.target.value})}
+                        ></textarea>
+                     </div>
 
-                   <button 
-                     type="submit"
-                     disabled={applying}
-                     className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl flex items-center justify-center gap-3 shadow-md hover:bg-blue-700 transition-all active:scale-95 text-sm"
-                   >
-                     {applying ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : (
-                       <>Submit Application <FiSend /></>
-                     )}
-                   </button>
-                </form>
-             </div>
+                     <div className="bg-slate-50 p-6 rounded-3xl border border-dashed border-slate-200">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8] mb-2">Resume Module</p>
+                        <div className="flex items-center justify-between">
+                           <p className="text-xs text-slate-500 font-bold italic line-clamp-1">
+                             System will securely attach your Profile Resume
+                           </p>
+                           <Link to="/profile" className="text-[10px] font-black text-blue-600 uppercase hover:underline">Edit Profile [→]</Link>
+                        </div>
+                     </div>
+
+                     <p className="text-xs text-slate-500 font-medium flex gap-2 items-center bg-blue-50 p-4 rounded-xl border border-blue-100/50">
+                       <FiCheckCircle className="text-blue-500 shrink-0" size={16}/> Your profile details and resume will be automatically shared with the employer.
+                     </p>
+
+                     <button 
+                       type="submit"
+                       disabled={applying}
+                       className="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl flex items-center justify-center gap-3 shadow-xl hover:bg-blue-700 transition-all active:scale-95 text-base"
+                     >
+                       {applying ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : (
+                         <>Submit Final Application <FiSend /></>
+                       )}
+                     </button>
+                  </form>
+               </div>
+             )}
           </div>
         </div>
       )}

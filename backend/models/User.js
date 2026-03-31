@@ -12,13 +12,29 @@ const userSchema = new mongoose.Schema({
   company: {
     name: { type: String },
     website: { type: String },
-    location: { type: String }
+    location: { type: String },
+    description: { type: String },
+    industry: { type: String },
+    employeeCount: { type: String }
   },
   profile: {
     bio: { type: String },
     skills: [String],
     resume: { type: String },
-    location: { type: String }
+    location: { type: String },
+    linkedin: { type: String },
+    github: { type: String },
+    education: [{
+      school: String,
+      degree: String,
+      year: String
+    }],
+    experience: [{
+      company: String,
+      role: String,
+      duration: String,
+      description: String
+    }]
   },
   otp: { type: String },
   otpExpires: { type: Date }

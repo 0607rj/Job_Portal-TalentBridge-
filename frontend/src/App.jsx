@@ -28,10 +28,12 @@ import ViewApplications from './pages/recruiter/ViewApplications';
 import InterviewRoom from './pages/InterviewRoom';
 
 import ModuleInitialization from './components/ModuleInitialization';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <AuthProvider>
         <Layout>
           <Routes>

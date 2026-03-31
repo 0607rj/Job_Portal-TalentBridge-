@@ -70,6 +70,7 @@ export const register = async (req, res) => {
         email: user.email,
         role: user.role,
         phone: user.phone,
+        avatar: user.avatar,
         ...(role === 'recruiter' && { company: user.company })
       }
     });
@@ -129,6 +130,7 @@ export const login = async (req, res) => {
         email: user.email,
         role: user.role,
         phone: user.phone,
+        avatar: user.avatar,
         ...(user.role === 'recruiter' && { company: user.company }),
         ...(user.role === 'candidate' && { profile: user.profile })
       }
@@ -158,6 +160,7 @@ export const getMe = async (req, res) => {
         email: user.email,
         role: user.role,
         phone: user.phone,
+        avatar: user.avatar,
         ...(user.role === 'recruiter' && { company: user.company }),
         ...(user.role === 'candidate' && { profile: user.profile }),
         createdAt: user.createdAt
@@ -214,6 +217,7 @@ export const updateProfile = async (req, res) => {
         email: user.email,
         role: user.role,
         phone: user.phone,
+        avatar: user.avatar,
         ...(user.role === 'recruiter' && { company: user.company }),
         ...(user.role === 'candidate' && { profile: user.profile })
       }

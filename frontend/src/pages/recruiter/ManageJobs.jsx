@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { jobAPI, applicationAPI } from '../../services/api';
 import { FiPlus, FiBriefcase, FiTrash2, FiEdit3, FiUsers, FiDollarSign, FiMapPin, FiClock, FiSettings, FiSend, FiCheckCircle, FiInfo, FiActivity, FiFilter } from 'react-icons/fi';
 
 const ManageJobs = () => {
+  const location = useLocation();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -13,6 +14,7 @@ const ManageJobs = () => {
   
   const [formData, setFormData] = useState({
     title: '',
+    company: '',
     category: 'Software Development',
     description: '',
     location: '',
@@ -32,7 +34,10 @@ const ManageJobs = () => {
   useEffect(() => {
     fetchMyJobs();
     fetchStats();
-  }, []);
+    if (location.pathname === '/recruiter/jobs/new') {
+      setShowModal(true);
+    }
+  }, [location.pathname]);
 
   const fetchMyJobs = async () => {
     try {
@@ -89,7 +94,7 @@ const ManageJobs = () => {
 
   const resetForm = () => {
     setFormData({
-      title: '', category: 'Software Development', description: '', location: '', workMode: 'On-site',
+      title: '', company: '', category: 'Software Development', description: '', location: '', workMode: 'On-site',
       jobType: 'Full-time', salary: { min: 0, max: 0, currency: 'INR' }, applicationDeadline: '',
       requirements: '', responsibilities: '', skills: '', companyLogo: '', openings: 1, isPaid: true, duration: 'Permanent'
     });
@@ -98,6 +103,7 @@ const ManageJobs = () => {
   const handleEdit = (job) => {
     setFormData({
       title: job.title,
+      company: job.company || '',
       category: job.category,
       description: job.description,
       location: job.location,
@@ -287,7 +293,7 @@ const ManageJobs = () => {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
-          <div className="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl overflow-y-auto p-8">
+          <div className="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl overflow-y-auto p-8 soft-scrollbar">
              <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl font-bold text-slate-900">{editingJobId ? 'Edit Job Posting' : 'Post a New Job'}</h2>
                 <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 text-xl font-bold p-2">×</button>
@@ -295,19 +301,35 @@ const ManageJobs = () => {
 
              <form className="space-y-8" onSubmit={handleSubmit}>
                 {/* Basic Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div>
-                       <label className="block text-sm font-bold text-slate-700 mb-2">Job Title</label>
-                       <input type="text" required placeholder="e.g. Senior Frontend Developer" className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
-                         value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})}
-                       />
-                   </div>
-                   <div>
-                       <label className="block text-sm font-bold text-slate-700 mb-2">Company Logo URL</label>
-                       <input type="text" placeholder="https://example.com/logo.png" className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
-                         value={formData.companyLogo} onChange={(e) => setFormData({...formData, companyLogo: e.target.value})}
-                       />
-                   </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Job Title</label>
+                        <input type="text" required placeholder="e.g. Senior Frontend Developer" className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                          value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Company Name</label>
+                        <input type="text" required placeholder="e.g. Google" className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                          value={formData.company} onChange={(e) => setFormData({...formData, company: e.target.value})}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Company Logo URL</label>
+                        <input type="text" placeholder="https://logo.clearbit.com/google.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                          value={formData.companyLogo} onChange={(e) => setFormData({...formData, companyLogo: e.target.value})}
+                        />
+                    </div>
+                </div>
+
+                {/* Geographical Info */}
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Job Location</label>
+                        <input type="text" required placeholder="e.g. Bangalore, India or Remote" className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                          value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})}
+                        />
+                    </div>
                 </div>
 
                 {/* Classification */}
