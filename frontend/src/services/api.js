@@ -83,9 +83,9 @@ export const interviewAPI = {
   cancelInterview: (id) => api.delete(`interviews/${id}`),
 };
 
-// Resume API (AI features - to be integrated later)
+// Resume API (AI features using Groq Cloud)
 export const resumeAPI = {
-  generateSuggestions: (data) => api.post('resume/suggestions', data),
+  enhanceContent: (data) => api.post('resume/enhance', data),
   saveResume: (data) => api.post('resume/save', data),
 };
 

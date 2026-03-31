@@ -354,157 +354,193 @@ const MockInterview = () => {
 
   /* ---- INTERVIEW SCREEN ---- */
   if (phase === 'interview') return (
-    <div className="flex-1 flex flex-col bg-[#f8faff] h-[calc(100vh-5rem)] overflow-hidden">
-
-      {/* Top bar */}
-      <div className="bg-white border-b border-slate-100 shadow-sm px-4 py-4 flex items-center justify-between max-w-3xl mx-auto w-full">
-        <button
-          onClick={() => { if (window.confirm('Exit the interview? Your progress will be lost.')) { setPhase('setup'); setChatLog([]); } }}
-          className="flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-slate-700 transition-colors"
-        >
-          <FiArrowLeft size={16} /> Exit
-        </button>
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-            Question {questionNumber} of 5
-          </span>
+    <div className="fixed inset-0 top-0 left-0 right-0 bottom-0 bg-[#f4f7fe] z-[60] flex flex-col animate-in fade-in duration-500">
+      
+      {/* Premium Header */}
+      <div className="bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm px-6 py-4 flex items-center justify-between z-10">
+        <div className="flex items-center gap-6">
+           <button
+             onClick={() => { if (window.confirm('Exit the interview? Your progress will be lost.')) { setPhase('setup'); setChatLog([]); } }}
+             className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all border border-slate-100 shadow-sm"
+           >
+             <FiArrowLeft size={20} />
+           </button>
+           <div className="hidden md:block">
+              <h3 className="text-sm font-black text-slate-900 tracking-tight uppercase">{jobRole === 'custom' ? customRole : jobRole}</h3>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Professional Assessment Session</p>
+           </div>
         </div>
-        {/* Progress dots */}
-        <div className="flex gap-1.5">
-          {[1, 2, 3, 4, 5].map(n => (
-            <div
-              key={n}
-              className={`w-6 h-1.5 rounded-full transition-all ${
-                n < questionNumber ? 'bg-emerald-500' :
-                n === questionNumber ? 'bg-blue-600' : 'bg-slate-200'
-              }`}
-            />
-          ))}
+
+        <div className="flex flex-col items-end gap-1.5">
+           <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+              <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest leading-none">
+                Phase {questionNumber} / 5
+              </span>
+           </div>
+           <div className="flex gap-1">
+             {[1, 2, 3, 4, 5].map(n => (
+               <div
+                 key={n}
+                 className={`h-1 rounded-full transition-all duration-500 ${
+                   n < questionNumber ? 'w-6 bg-emerald-500' :
+                   n === questionNumber ? 'w-10 bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.3)]' : 'w-4 bg-slate-200'
+                 }`}
+               />
+             ))}
+           </div>
         </div>
       </div>
 
-      {/* Chat area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 max-w-3xl mx-auto w-full space-y-4">
-        {chatLog.map((entry, idx) => {
+      {/* Dynamic Conversation Stage */}
+      <div className="flex-1 overflow-y-auto px-4 py-8 custom-scrollbar">
+        <div className="max-w-3xl mx-auto space-y-10 pb-12">
+          {chatLog.map((entry, idx) => {
+            const isQuestion = entry.type === 'question';
+            const isAnswer = entry.type === 'answer';
+            const isFeedback = entry.type === 'feedback';
 
-          if (entry.type === 'question') return (
-            <div key={idx} className="flex items-start gap-3 animate-[fadeUp_0.3s_ease]">
-              <div className="w-9 h-9 bg-slate-900 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md">
-                <FiCpu size={16} />
-              </div>
-              <div className="bg-white rounded-2xl rounded-tl-none p-5 shadow-sm border border-slate-100 max-w-[85%]">
-                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">
-                  AI Interviewer — Q{entry.questionNumber}
-                </p>
-                <p className="text-slate-900 font-semibold leading-relaxed text-sm">{entry.content}</p>
-              </div>
-            </div>
-          );
-
-          if (entry.type === 'answer') return (
-            <div key={idx} className="flex items-start gap-3 flex-row-reverse animate-[fadeUp_0.3s_ease]">
-              <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md">
-                <FiUser size={16} />
-              </div>
-              <div className="bg-blue-600 text-white rounded-2xl rounded-tr-none p-5 shadow-md max-w-[85%]">
-                <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-2">Your Answer</p>
-                <p className="font-medium leading-relaxed text-sm">{entry.content}</p>
-              </div>
-            </div>
-          );
-
-          if (entry.type === 'feedback') return (
-            <div key={idx} className="flex items-start gap-3 animate-[fadeUp_0.3s_ease]">
-              <div className="w-9 h-9 bg-slate-200 rounded-xl flex items-center justify-center text-slate-600 shrink-0">
-                <FiZap size={16} />
-              </div>
-              <div className="bg-white rounded-2xl rounded-tl-none border border-slate-100 shadow-sm overflow-hidden max-w-[90%]">
-                <div className="p-5 border-b border-slate-50 flex items-center gap-3">
-                  <span className={`text-sm font-black px-3 py-1 rounded-full ${scoreBadge(entry.score)}`}>
-                    {entry.score}/10
-                  </span>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Score</p>
+            if (isQuestion) return (
+              <div key={idx} className="flex items-start gap-4 animate-in slide-in-from-left-4 fade-in duration-500">
+                <div className="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg border border-slate-700 select-none">
+                  <FiCpu size={20} />
                 </div>
-                <div className="p-5 space-y-3">
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                      <FiCheckCircle size={10} className="text-emerald-500" /> Feedback
-                    </p>
-                    <p className="text-sm text-slate-700 font-medium leading-relaxed">{entry.feedback}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                      <FiAlertCircle size={10} className="text-amber-500" /> Improve
-                    </p>
-                    <p className="text-sm text-slate-600 font-medium leading-relaxed">{entry.improvement}</p>
+                <div className="flex-1 space-y-2">
+                  <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] ml-1">Interviewer Request</p>
+                  <div className="bg-white rounded-[24px] rounded-tl-none p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 relative group overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-blue-600" />
+                    <p className="text-slate-800 font-bold leading-relaxed text-[15px]">{entry.content}</p>
                   </div>
                 </div>
               </div>
-            </div>
-          );
+            );
 
-          return null;
-        })}
+            if (isAnswer) return (
+              <div key={idx} className="flex items-start gap-4 flex-row-reverse animate-in slide-in-from-right-4 fade-in duration-500">
+                <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-blue-500/20 border border-blue-400 select-none">
+                  <FiUser size={20} />
+                </div>
+                <div className="flex-1 space-y-2 text-right">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mr-1">Candidate Submission</p>
+                  <div className="bg-slate-900 text-white rounded-[24px] rounded-tr-none p-6 shadow-xl border border-slate-800 inline-block text-left relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-1 h-full bg-emerald-500" />
+                    <p className="font-medium leading-relaxed text-[15px] opacity-90">{entry.content}</p>
+                  </div>
+                </div>
+              </div>
+            );
 
-        {/* Typing indicator while submitting */}
-        {submitting && (
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 bg-slate-900 rounded-xl flex items-center justify-center text-white shrink-0">
-              <FiCpu size={16} />
-            </div>
-            <div className="bg-white rounded-2xl rounded-tl-none p-4 shadow-sm border border-slate-100">
-              <div className="flex gap-1.5 items-center h-5">
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            if (isFeedback) return (
+              <div key={idx} className="flex items-start gap-4 animate-in zoom-in-95 fade-in duration-500">
+                <div className="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0 border border-emerald-200">
+                  <FiTrendingUp size={20} />
+                </div>
+                <div className="flex-1 space-y-3">
+                  <div className="bg-white rounded-[32px] rounded-tl-none border border-slate-100 shadow-xl overflow-hidden group">
+                    <div className="px-6 py-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Performance Insight</span>
+                       <span className={`text-xs font-black px-4 py-1.5 rounded-full shadow-sm border ${scoreBadge(entry.score)}`}>
+                         {entry.score} / 10 Points
+                       </span>
+                    </div>
+                    <div className="p-6 grid sm:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1.5">
+                          <FiCheckCircle size={10} /> Competency Review
+                        </p>
+                        <p className="text-sm text-slate-700 font-medium leading-relaxed italic border-l-2 border-emerald-100 pl-3">{entry.feedback}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1.5">
+                          <FiZap size={10} /> Optimization Points
+                        </p>
+                        <p className="text-sm text-slate-600 font-medium leading-relaxed border-l-2 border-amber-100 pl-3">{entry.improvement}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+
+            return null;
+          })}
+
+          {submitting && (
+            <div className="flex items-start gap-4 animate-pulse">
+              <div className="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg border border-slate-800">
+                <FiCpu size={20} className="animate-spin duration-slow" />
+              </div>
+              <div className="bg-white rounded-[24px] rounded-tl-none p-5 shadow-sm border border-slate-100 flex items-center gap-3">
+                <div className="flex gap-1">
+                   <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                   <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '200ms' }} />
+                   <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '400ms' }} />
+                </div>
+                <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Evaluating Response...</span>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <div ref={chatEndRef} />
+          <div ref={chatEndRef} className="h-10" />
+        </div>
       </div>
 
-      {/* Input area — only show when awaiting answer (no currentFeedback yet) */}
-      {!currentFeedback && !submitting && (
-        <div className="bg-white border-t border-slate-100 shadow-xl px-4 py-4">
-          <div className="max-w-3xl mx-auto">
-            <div className="flex gap-3 items-end">
-              <textarea
-                ref={textareaRef}
-                value={answer}
-                onChange={e => setAnswer(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
-                }}
-                placeholder="Type your answer... (Press Enter to submit, Shift+Enter for new line)"
-                rows={3}
-                className="flex-1 p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 text-sm font-medium text-slate-800 placeholder:text-slate-400 resize-none transition-all"
-              />
-              <button
-                onClick={handleSubmit}
-                disabled={!answer.trim()}
-                className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-              >
-                <FiSend size={18} />
-              </button>
+      {/* Tactical Input Dock */}
+      <div className="bg-white/80 backdrop-blur-2xl border-t border-slate-200 p-6 z-20">
+        <div className="max-w-3xl mx-auto relative group">
+          {!currentFeedback && !submitting ? (
+             <div className="flex flex-col gap-4 animate-in slide-in-from-bottom-4 duration-500">
+                <div className="relative">
+                  <textarea
+                    ref={textareaRef}
+                    autoFocus
+                    value={answer}
+                    onChange={e => setAnswer(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) { 
+                        e.preventDefault(); 
+                        handleSubmit(); 
+                      }
+                    }}
+                    placeholder="Provide your professional insight here..."
+                    rows={1}
+                    className="w-full p-6 pr-24 bg-slate-50 border-2 border-slate-100 rounded-[30px] outline-none focus:border-blue-500 focus:bg-white text-[15px] font-bold text-slate-900 placeholder:text-slate-400 resize-none transition-all shadow-inner custom-scrollbar min-h-[80px]"
+                  />
+                  <div className="absolute right-3 bottom-3">
+                    <button
+                      onClick={handleSubmit}
+                      disabled={!answer.trim() || submitting}
+                      className="h-14 w-14 bg-slate-900 text-white rounded-[24px] flex items-center justify-center shadow-xl hover:bg-blue-600 transition-all hover:-translate-y-1 active:scale-95 disabled:opacity-30 disabled:translate-y-0 disabled:shadow-none group"
+                    >
+                      <FiSend size={20} className="group-hover:rotate-12 transition-transform" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-center gap-6 px-4">
+                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">
+                     <span className="px-1.5 py-0.5 bg-slate-100 rounded border border-slate-200">ENTER</span> to Submit
+                   </p>
+                   <div className="w-1 h-1 bg-slate-200 rounded-full" />
+                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">
+                     <span className="px-1.5 py-0.5 bg-slate-100 rounded border border-slate-200">SHIFT + ENTER</span> for Multi-line
+                   </p>
+                </div>
+             </div>
+          ) : !submitting && (
+            <div className="flex justify-center py-4 animate-in zoom-in-95 duration-500">
+               <div className="p-1 pb-1.5 bg-emerald-500 rounded-full animate-bounce">
+                  <div className="p-4 bg-emerald-600 text-white rounded-full font-black text-[10px] uppercase tracking-[0.2em] shadow-lg flex items-center gap-3">
+                     <FiStar /> Evaluation Synchronized — Next Matrix Ready
+                  </div>
+               </div>
             </div>
-            <p className="text-[10px] text-slate-400 font-medium text-center mt-2">
-              Shift+Enter for new line · Enter to submit
-            </p>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
-      <style>{`
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
+
 
   /* ---- SUMMARY SCREEN ---- */
   if (phase === 'summary' && finalResult) return (

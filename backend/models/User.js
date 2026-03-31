@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
     bio: { type: String },
     skills: [String],
     resume: { type: String },
+    professionalSummary: { type: String },
     location: { type: String },
     linkedin: { type: String },
     github: { type: String },
@@ -33,6 +34,12 @@ const userSchema = new mongoose.Schema({
       company: String,
       role: String,
       duration: String,
+      description: String
+    }],
+    projects: [{
+      title: String,
+      technologies: String,
+      date: String,
       description: String
     }]
   },
