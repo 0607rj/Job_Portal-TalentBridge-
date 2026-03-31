@@ -2,40 +2,45 @@
 
 A MERN stack job portal web application with role-based authentication for candidates and recruiters.
 
+**Live Demo:** [talentbridge6.netlify.app](https://talentbridge6.netlify.app)
+
 ## Features
 
 ### For Candidates
-- 🔐 Secure authentication and profile management
+- 🔐 Secure authentication and comprehensive profile management (Bio, Skills, LinkedIn/GitHub)
+- 📄 Upload and maintain resume in PDF format (2MB security validation)
 - 🔍 Browse and search job opportunities
 - 📝 Apply for jobs with custom cover letters
-- 📊 Track application status
+- 📊 Track application status seamlessly
 - 📅 View scheduled interviews
-- 🤖 AI-powered resume builder (Coming Soon)
-- 💡 Mock interview practice with AI (Coming Soon)
+- 💡 AI Mock Interview practice module to prepare for technical assessments
+- 📹 Join high-definition WebRTC video interview rooms directly from the dashboard
 
 ### For Recruiters
-- 🔐 Secure authentication with company profile
-- 📋 Post and manage job listings
-- 👥 View and manage applications
-- ✅ Shortlist candidates
-- 📅 Schedule interviews
+- 🔐 Secure authentication with extended company profiles (scale, industry, mission details)
+- 📋 Post and manage job listings rapidly
+- 👥 View and manage applications through an optimized pipeline
+- ✅ Shortlist candidates and track hiring statuses
+- 📅 Schedule interviews with automated notifications
+- 📹 Initiate and conduct secure WebRTC video calls directly with candidates
 - 📝 Add interview feedback
-- 📊 View recruitment statistics
+- 📊 View recruitment metrics
 
 ## Tech Stack
 
 ### Backend
 - **Node.js** & **Express.js** - Server framework
 - **MongoDB** & **Mongoose** - Database
+- **Socket.io** - Real-time communication and WebRTC video signalling
 - **JWT** - Authentication
 - **bcryptjs** - Password hashing
 - **express-validator** - Input validation
 
 ### Frontend
 - **React** - UI library
-- **React Router** - Navigation
+- **React Router** - Navigation with Scroll Management
 - **Axios** - API calls
-- **Tailwind CSS** - Styling
+- **Tailwind CSS v4** - Premium modern styling
 - **React Icons** - Icons
 
 ## Project Structure
@@ -50,8 +55,8 @@ talentbridge-pro/
 │   │   ├── jobController.js
 │   │   ├── applicationController.js
 │   │   ├── interviewController.js
-│   │   ├── resumeController.js (AI - placeholder)
-│   │   └── mockInterviewController.js (AI - placeholder)
+│   │   ├── resumeController.js
+│   │   └── mockInterviewController.js
 │   ├── middleware/
 │   │   └── auth.js
 │   ├── models/
@@ -76,17 +81,21 @@ talentbridge-pro/
     │   │   ├── Layout.jsx
     │   │   ├── Navbar.jsx
     │   │   ├── Footer.jsx
-    │   │   └── ProtectedRoute.jsx
+    │   │   ├── ProtectedRoute.jsx
+    │   │   └── ScrollToTop.jsx
     │   ├── context/
     │   │   └── AuthContext.jsx
     │   ├── pages/
     │   │   ├── Home.jsx
     │   │   ├── Login.jsx
     │   │   ├── Register.jsx
+    │   │   ├── Profile.jsx
     │   │   ├── candidate/
-    │   │   │   └── CandidateDashboard.jsx
+    │   │   │   ├── CandidateDashboard.jsx
+    │   │   │   └── MyApplications.jsx
     │   │   └── recruiter/
-    │   │       └── RecruiterDashboard.jsx
+    │   │       ├── RecruiterDashboard.jsx
+    │   │       └── ManageJobs.jsx
     │   ├── services/
     │   │   └── api.js
     │   ├── App.jsx
@@ -127,7 +136,7 @@ PORT=5000
 MONGODB_URI=mongodb://localhost:27017/talentbridge-pro
 JWT_SECRET=your_secret_key_here
 JWT_EXPIRE=7d
-CLIENT_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:5173
 ```
 
 5. Start the backend server:
@@ -200,18 +209,20 @@ The frontend will run on `http://localhost:5173`
 
 ### Candidate
 - Register/Login
+- Fill comprehensive professional profile with resume (PDF only)
 - Browse jobs
 - Apply for jobs
 - Track applications
-- View interview schedules
-- Access AI tools (coming soon)
+- Join live WebRTC video interviews
+- Access AI Mock Interview practice
 
 ### Recruiter
-- Register/Login with company details
+- Register/Login with detailed company identity (scale, industry, mission)
 - Post jobs
 - View applications
 - Shortlist candidates
-- Schedule interviews
+- Schedule live interviews
+- Initiate WebRTC calls directly from the candidate's application
 - Add interview feedback
 
 ## Default Test Users
@@ -254,16 +265,13 @@ npm run preview  # Preview production build
 - `MONGODB_URI` - MongoDB connection string
 - `JWT_SECRET` - Secret key for JWT
 - `JWT_EXPIRE` - JWT expiration time
-- `CLIENT_URL` - Frontend URL for CORS
+- `FRONTEND_URL` - Frontend URL for CORS
 - `OPENAI_API_KEY` - (Optional) For AI features
 
 ### Frontend (.env)
 - `VITE_API_URL` - Backend API URL
 
-## Future Enhancements (AI Integration)
-
-- **Resume Builder**: AI-powered resume suggestions and formatting
-- **Mock Interviews**: AI-generated interview questions and feedback
+## Future Enhancements
 - **Smart Job Matching**: AI-based job recommendations
 - **Candidate Screening**: Automated initial screening
 
