@@ -7,13 +7,21 @@ import {
   updateApplicationStatus,
   addNote,
   withdrawApplication,
-  getApplicationStats
+  getApplicationStats,
+  analyzeJobMatch
 } from '../controllers/applicationController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Candidate routes
+/**
+ * [TalentBridge Intelligence Routes]
+ */
+
+// AI analysis route (Candidate)
+router.post('/analyze/:jobId', protect, authorize('candidate'), analyzeJobMatch);
+
+// Basic Candidate routes
 router.post('/', protect, authorize('candidate'), applyForJob);
 router.get('/my-applications', protect, authorize('candidate'), getMyApplications);
 router.get('/stats', protect, authorize('candidate'), getApplicationStats);

@@ -222,19 +222,7 @@ const CandidateDashboard = () => {
                </Link>
             </div>
 
-            {/* Resume Architect Card */}
-            <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden group">
-               <FiFileText className="absolute -right-8 -bottom-8 w-32 h-32 text-white/10 opacity-30 rotate-12 transition-transform group-hover:scale-110 duration-500" />
-               <h3 className="font-bold text-sm uppercase tracking-widest text-blue-200 mb-6 flex items-center gap-2">
-                  <FiTrendingUp /> Resume Architect
-               </h3>
-               <p className="text-xs text-indigo-50 font-medium leading-relaxed mb-8 opacity-90">
-                  Generate the ATS-friendly professional resume that recruiters love using your profile data.
-               </p>
-               <Link to="/candidate/resume-builder" className="w-full py-4 bg-white text-indigo-700 font-bold rounded-xl text-center block text-sm shadow-xl hover:bg-slate-50 transition-all active:scale-95">
-                  Build My Resume
-               </Link>
-            </div>
+
 
             {/* Profile Update Card */}
             <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm hover:shadow-md transition-all">

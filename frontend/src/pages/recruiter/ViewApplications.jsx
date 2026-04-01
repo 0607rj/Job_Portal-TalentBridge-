@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { applicationAPI, jobAPI, interviewAPI } from '../../services/api';
-import { FiUser, FiFileText, FiCalendar, FiCheckCircle, FiXCircle, FiClock, FiMail, FiPhone, FiExternalLink, FiSearch, FiFilter, FiActivity, FiMessageSquare, FiUsers, FiVideo } from 'react-icons/fi';
+import { FiUser, FiFileText, FiCalendar, FiCheckCircle, FiXCircle, FiClock, FiMail, FiPhone, FiExternalLink, FiSearch, FiFilter, FiActivity, FiMessageSquare, FiUsers, FiVideo, FiBriefcase } from 'react-icons/fi';
 
 const ViewApplications = ({ defaultJobId }) => {
   const { jobId: urlId } = useParams();
@@ -139,15 +139,27 @@ const ViewApplications = ({ defaultJobId }) => {
                             </span>
                             
                             {app.candidate?.aiMockScore !== undefined && (
-                              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm transition-all hover:bg-emerald-100">
-                                🧠 AI Verified: {app.candidate.aiMockScore}/50
+                              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200 shadow-sm transition-all hover:bg-amber-100">
+                                🧠 Mock Score: {app.candidate.aiMockScore}/50
                               </span>
                             )}
-
-                            {jobId === 'all' && (
-                               <span className="text-[10px] bg-slate-900 text-white px-4 py-1 rounded-full font-bold uppercase tracking-widest">
-                                 Job: {app.job?.title?.split(' ')[0] || 'Unknown'}
-                               </span>
+                            
+                            {app.aiMatchData?.matchScore !== undefined && (
+                               <div className="relative inline-block">
+                                 <span className={`peer inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm transition-all cursor-help ${
+                                   app.aiMatchData.matchScore >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
+                                   app.aiMatchData.matchScore >= 50 ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100' :
+                                   'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                                 }`}>
+                                   ⚡ AI Synergy: {app.aiMatchData.matchScore}%
+                                 </span>
+                                 {app.aiMatchData.analysisReason && (
+                                   <div className="absolute top-[calc(100%+8px)] left-0 w-[280px] p-4 bg-slate-900 text-white text-[11px] font-semibold leading-relaxed rounded-2xl opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all duration-300 z-[100] shadow-2xl border border-white/10 transform -translate-y-2 peer-hover:translate-y-0">
+                                      <div className="mb-2 pb-2 border-b border-white/10 text-emerald-400 uppercase tracking-[0.2em] text-[8px] font-black">AI Analysis Recommendation</div>
+                                      {app.aiMatchData.analysisReason}
+                                   </div>
+                                 )}
+                               </div>
                             )}
                           </div>
                           
@@ -158,8 +170,11 @@ const ViewApplications = ({ defaultJobId }) => {
                              <div className="flex items-center gap-3 text-xs font-bold text-slate-500">
                                 <FiPhone className="text-slate-400 group-hover:text-blue-600 transition-colors" /> {app.candidate?.phone || 'No phone'}
                              </div>
+                             <div className="flex items-center gap-3 text-xs font-bold text-blue-600">
+                                <FiBriefcase className="text-blue-400 shrink-0" /> <span className="uppercase tracking-widest text-[10px] font-black">Applied for:</span> {app.job?.title || 'Unknown Role'}
+                             </div>
                              <div className="flex items-center gap-3 text-xs font-bold text-slate-500">
-                                <FiCalendar className="text-slate-400 group-hover:text-blue-600 transition-colors" /> Applied: {new Date(app.createdAt).toLocaleDateString()}
+                                <FiCalendar className="text-slate-400 group-hover:text-blue-600 transition-colors" /> Applied on: {new Date(app.createdAt).toLocaleDateString()}
                              </div>
                           </div>
                        </div>
@@ -168,8 +183,20 @@ const ViewApplications = ({ defaultJobId }) => {
                     {/* Actions Terminal */}
                     <div className="flex flex-col gap-3 min-w-[220px]">
                        {app.candidate?.profile?.resume && (
-                         <a href={app.candidate.profile.resume} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 px-8 py-3.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-all shadow-md active:scale-95">
-                            View Resume <FiExternalLink />
+                         <button 
+                           onClick={() => {
+                             const win = window.open();
+                             win.document.write(`<iframe src="${app.candidate.profile.resume}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+                             win.document.title = `Resume - ${app.candidate.name}`;
+                           }}
+                           className="flex items-center justify-center gap-2 px-8 py-3.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-black transition-all shadow-md active:scale-95"
+                         >
+                            View Resume <FiFileText />
+                         </button>
+                       )}
+                       {app.candidate?.profile?.resumeLink && (
+                         <a href={app.candidate.profile.resumeLink} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 px-8 py-3.5 bg-blue-50 text-blue-600 border border-blue-200 rounded-xl text-xs font-bold hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-95">
+                            External Drive Link <FiExternalLink />
                          </a>
                        )}
                        {app.status === 'Interview Scheduled' && (

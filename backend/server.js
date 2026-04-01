@@ -14,7 +14,7 @@ import authRoutes from './routes/authRoutes.js';
 import jobRoutes from './routes/jobRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
 import interviewRoutes from './routes/interviewRoutes.js';
-import resumeRoutes from './routes/resumeRoutes.js';
+
 import mockInterviewRoutes from './routes/mockInterviewRoutes.js';
 
 import http from 'http';
@@ -136,7 +136,7 @@ app.use('/api/auth', authLimiter, authRoutes); // Rate-limited auth routes
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/interviews', interviewRoutes);
-app.use('/api/resume', resumeRoutes);
+
 app.use('/api/mock-interview', mockInterviewRoutes);
 
 // --- Global Error Handler ---

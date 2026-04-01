@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
     bio: { type: String },
     skills: [String],
     resume: { type: String },
+    resumeLink: { type: String, default: '' },
     professionalSummary: { type: String },
     location: { type: String },
     linkedin: { type: String },
@@ -41,7 +42,13 @@ const userSchema = new mongoose.Schema({
       technologies: String,
       date: String,
       description: String
-    }]
+    }],
+    aiAnalysis: {
+      extractedSkills: [String],
+      summary: String,
+      isProcessed: { type: Boolean, default: false },
+      lastProcessed: Date
+    }
   },
   otp: { type: String },
   otpExpires: { type: Date }

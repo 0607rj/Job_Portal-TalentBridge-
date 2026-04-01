@@ -21,10 +21,14 @@ const applicationSchema = new mongoose.Schema({
     enum: ['Applied', 'Under Review', 'Shortlisted', 'Interview Scheduled', 'Rejected', 'Accepted'],
     default: 'Applied'
   },
-  resume: {
-    url: String,
-    public_id: String
+  aiMatchData: {
+    matchScore: { type: Number, min: 0, max: 100 },
+    matchingSkills: [String],
+    missingSkills: [String],
+    recommendation: String,
+    analysisReason: String
   },
+  resume: String,
   coverLetter: {
     type: String,
     maxlength: [1000, 'Cover letter cannot exceed 1000 characters']

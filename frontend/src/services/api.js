@@ -45,6 +45,7 @@ export const authAPI = {
   login: (data) => api.post('auth/login', data),
   getMe: () => api.get('auth/me'),
   updateProfile: (data) => api.put('auth/profile', data),
+  updatePassword: (data) => api.put('auth/update-password', data),
   forgotPassword: (email) => api.post('auth/forgot-password', { email }),
   resetPassword: (data) => api.post('auth/reset-password', data),
 };
@@ -70,6 +71,7 @@ export const applicationAPI = {
   addNote: (id, data) => api.post(`applications/${id}/notes`, data),
   withdrawApplication: (id) => api.delete(`applications/${id}`),
   getApplicationStats: () => api.get('applications/stats'),
+  analyzeMatch: (jobId) => api.post(`applications/analyze/${jobId}`),
 };
 
 // Interview API
@@ -83,11 +85,7 @@ export const interviewAPI = {
   cancelInterview: (id) => api.delete(`interviews/${id}`),
 };
 
-// Resume API (AI features using Groq Cloud)
-export const resumeAPI = {
-  enhanceContent: (data) => api.post('resume/enhance', data),
-  saveResume: (data) => api.post('resume/save', data),
-};
+
 
 // Mock Interview API — conversational AI interviewer
 export const mockInterviewAPI = {

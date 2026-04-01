@@ -4,6 +4,7 @@ import {
   login,
   getMe,
   updateProfile,
+  updatePassword,
   forgotPassword,
   resetPassword,
   registerValidation,
@@ -22,5 +23,6 @@ router.post('/reset-password', resetPassword);
 // --- Protected Routes ---
 router.get('/me', protect, getMe);
 router.put('/profile', protect, updateProfile);
+router.put('/update-password', protect, updatePassword);
 
 export default router;

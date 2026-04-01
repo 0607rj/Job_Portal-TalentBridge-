@@ -2,6 +2,8 @@ import User from '../models/User.js';
 import { body, validationResult } from 'express-validator';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
+import { analyzeProfile } from '../utils/aiService.js';
+
 
 // Lazy transporter factory — created at call time so process.env is already loaded
 // (In ESM, module-level code runs before dotenv.config(), so env vars would be undefined)
@@ -199,11 +201,45 @@ export const updateProfile = async (req, res) => {
 
     // Update role-specific fields
     if (user.role === 'candidate' && profile) {
-      user.profile = { ...user.profile, ...profile };
-    }
+      // Validate resume size (if provided as base64)
+      if (profile.resume && profile.resume.startsWith('data:')) {
+         if (profile.resume.length > 7.5 * 1024 * 1024) {
+           return res.status(400).json({
+             success: false,
+             message: 'Resume file is too large. Maximum size allowed is 5MB.'
+           });
+         }
+      }
+      
+      // Initialize profile object if it doesn't exist
+      if (!user.profile) {
+        user.profile = {};
+      }
 
-    if (user.role === 'recruiter' && company) {
-      user.company = { ...user.company, ...company };
+      // Merge profile fields explicitly - this ensures Mongoose detects the nested changes
+      Object.keys(profile).forEach(key => {
+        user.profile[key] = profile[key];
+      });
+      
+      user.markModified('profile');
+
+      // (AI Extraction Enhancement) 
+      // Perform background profile/resume analysis for future skill matching
+      try {
+        console.log(`[AI Interaction] Triggering skill extraction for Candidate ${user.name}...`);
+        const extracted = await analyzeProfile(user.profile);
+        
+        user.profile.aiAnalysis = {
+          extractedSkills: extracted.extractedSkills || [],
+          summary: extracted.summary || user.profile.bio,
+          isProcessed: true,
+          lastProcessed: new Date()
+        };
+        
+        console.log(`[AI Interaction] Extraction completed for Candidate: ${user.name}`);
+      } catch (aiErr) {
+         console.warn(`[AI Warning] Extraction failed for candidate:`, aiErr.message);
+      }
     }
 
     await user.save();
@@ -227,6 +263,43 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error updating profile',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Update password
+// @route   PUT /api/auth/update-password
+// @access  Private
+export const updatePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    // Find user by ID and include password field for comparison
+    const user = await User.findById(req.user.id).select('+password');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Verify current password
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Current password is incorrect' });
+    }
+
+    // Update password (pre-save hook in User model will handle hashing)
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully'
+    });
+  } catch (error) {
+    console.error('Update password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating password',
       error: error.message
     });
   }

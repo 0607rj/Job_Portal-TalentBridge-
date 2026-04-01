@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { jobAPI, applicationAPI } from '../../services/api';
-import { FiSearch, FiMapPin, FiBriefcase, FiDollarSign, FiFilter, FiSend, FiCheckCircle, FiInfo, FiArrowLeft } from 'react-icons/fi';
+import { jobAPI, applicationAPI, authAPI } from '../../services/api';
+import { FiSearch, FiMapPin, FiBriefcase, FiDollarSign, FiFilter, FiSend, FiCheckCircle, FiInfo, FiArrowLeft, FiZap, FiTarget, FiAlertCircle, FiClock, FiCheck, FiArrowRight } from 'react-icons/fi';
+
 
 const BrowseJobs = () => {
   const [jobs, setJobs] = useState([]);
@@ -22,6 +23,9 @@ const BrowseJobs = () => {
   });
   const [stats, setStats] = useState(null);
   const [appliedJobIds, setAppliedJobIds] = useState([]);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
+
 
   useEffect(() => {
     fetchJobs();
@@ -71,6 +75,24 @@ const BrowseJobs = () => {
       setApplying(false);
     }
   };
+
+  const handleAnalyzeMatch = async () => {
+    setAnalyzing(true);
+    setAnalysisResult(null);
+    try {
+      const resp = await applicationAPI.analyzeMatch(selectedJob._id);
+      setAnalysisResult(resp.data.data);
+      setModalPhase('analysis');
+      toast.success('AI Synergy Analysis Complete!');
+    } catch (err) {
+      toast.error('AI analysis failed. Please ensure your profile is complete.');
+      console.error(err);
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+
 
   return (
     <div className="min-h-screen bg-[#fcfcfd] p-4 lg:p-8 pt-24">
@@ -187,12 +209,13 @@ const BrowseJobs = () => {
               <div key={job._id} onClick={() => { setSelectedJob(job); setModalPhase('details'); }} className="cursor-pointer bg-white p-6 rounded-[2rem] border border-slate-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col justify-between">
                 <div>
                   <div className="flex justify-between items-start mb-6">
-                    <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center font-bold text-blue-600 text-xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 overflow-hidden shadow-sm">
-                      {job.companyLogo ? (
-                        <img src={job.companyLogo} alt={job.company} className="w-full h-full object-cover rounded-2xl" onError={(e) => { e.target.style.display='none'; }} />
-                      ) : (
-                        <span>{job.company?.[0]?.toUpperCase()}</span>
-                      )}
+                    <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center font-bold text-blue-600 text-xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 overflow-hidden shadow-sm border border-slate-100">
+                      <img 
+                        src={job.companyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company)}&background=f1f5f9&color=2563eb&bold=true&size=128`} 
+                        alt={job.company} 
+                        className="w-full h-full object-contain p-2" 
+                        onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company)}&background=f1f5f9&color=2563eb&bold=true&size=128`; }}
+                      />
                     </div>
                     <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold border border-blue-100">
                       {job.jobType}
@@ -254,12 +277,13 @@ const BrowseJobs = () => {
              <div className="bg-slate-900 p-8 text-white relative shrink-0">
                  <div className="absolute top-8 right-8 cursor-pointer opacity-50 hover:opacity-100 transition-all font-semibold text-sm bg-white/10 px-4 py-2 rounded-xl" onClick={() => setSelectedJob(null)}>Close X</div>
                  <div className="flex items-center gap-6 mt-4">
-                    <div className="w-20 h-20 bg-white rounded-[1.5rem] flex items-center justify-center p-2 shadow-inner shrink-0 overflow-hidden">
-                       {selectedJob.companyLogo ? (
-                         <img src={selectedJob.companyLogo} className="w-full h-full object-contain" alt="Logo"/>
-                       ) : (
-                         <span className="text-3xl text-blue-600 font-bold">{selectedJob.company[0]}</span>
-                       )}
+                    <div className="w-20 h-20 bg-white rounded-[1.5rem] flex items-center justify-center p-2 shadow-inner shrink-0 overflow-hidden border border-slate-700/30">
+                       <img 
+                        src={selectedJob.companyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedJob.company)}&background=f1f5f9&color=2563eb&bold=true&size=128`} 
+                        className="w-full h-full object-contain" 
+                        alt="Logo"
+                        onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedJob.company)}&background=f1f5f9&color=2563eb&bold=true&size=128`; }}
+                       />
                     </div>
                     <div>
                        <h2 className="text-2xl lg:text-3xl font-bold tracking-tight mb-2 pr-12">{selectedJob.title}</h2>
@@ -290,9 +314,24 @@ const BrowseJobs = () => {
                     </div>
                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Experience</p>
-                       <p className="font-bold text-slate-800 text-sm">{selectedJob.experience?.min}-{selectedJob.experience?.max} years</p>
+                       <p className="font-bold text-slate-800 text-sm">{selectedJob.experience?.min || 0}-{selectedJob.experience?.max || 3}+ years</p>
                     </div>
                  </div>
+
+                 {selectedJob.skills?.length > 0 && (
+                   <div className="bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100/50">
+                     <h3 className="text-xs font-black text-blue-600 mb-4 uppercase tracking-[0.2em] flex items-center gap-2">
+                       <FiZap className="text-amber-500" /> Required Tech Stack
+                     </h3>
+                     <div className="flex flex-wrap gap-2">
+                       {selectedJob.skills.map((skill, i) => (
+                         <span key={i} className="px-4 py-2 bg-white text-blue-700 text-xs font-bold rounded-xl shadow-sm border border-blue-100/50">
+                           {skill}
+                         </span>
+                       ))}
+                     </div>
+                   </div>
+                 )}
 
                  {selectedJob.requirements?.length > 0 && (
                    <div>
@@ -312,18 +351,95 @@ const BrowseJobs = () => {
                    </div>
                  )}
                  
-                 <div className="pt-8 border-t border-slate-100 flex justify-end gap-4 mt-8">
-                    {appliedJobIds.includes(selectedJob._id) ? (
-                       <button disabled className="px-8 py-4 bg-emerald-50 text-emerald-600 font-bold rounded-2xl flex items-center justify-center gap-3 cursor-not-allowed border border-emerald-100 w-full lg:w-auto">
-                         <FiCheckCircle size={20}/> Already Applied
+                 <div className="pt-8 border-t border-slate-100 flex flex-col lg:flex-row justify-end gap-4 mt-8">
+
+                     {!appliedJobIds.includes(selectedJob._id) && (
+                       <button 
+                        onClick={handleAnalyzeMatch} 
+                        disabled={analyzing}
+                        className="px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl active:scale-95 text-center flex-1 lg:flex-none"
+                       >
+                         {analyzing ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <><FiZap className="text-yellow-400" /> AI Synergy Score</>}
                        </button>
-                    ) : (
-                       <button onClick={() => setModalPhase('apply')} className="w-full lg:w-auto px-12 py-4 bg-blue-600 text-white font-bold rounded-2xl flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 text-center">
-                         Proceed to Apply <FiArrowLeft className="rotate-180" />
-                       </button>
-                    )}
-                 </div>
+                     )}
+                     {appliedJobIds.includes(selectedJob._id) ? (
+                        <button disabled className="px-8 py-4 bg-emerald-50 text-emerald-600 font-bold rounded-2xl flex items-center justify-center gap-3 cursor-not-allowed border border-emerald-100 w-full lg:w-auto">
+                          <FiCheckCircle size={20}/> Already Applied
+                        </button>
+                     ) : (
+                        <button onClick={() => setModalPhase('apply')} className="flex-1 lg:flex-none px-12 py-4 bg-blue-600 text-white font-bold rounded-2xl flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 text-center">
+                          Proceed to Apply <FiArrowLeft className="rotate-180" />
+                        </button>
+                     )}
+                  </div>
                </div>
+
+             ) : modalPhase === 'analysis' ? (
+                 <div className="p-8 space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500 soft-scrollbar overflow-y-auto">
+                    <div className="flex items-center gap-4 mb-2 pb-4 border-b border-slate-100">
+                      <button onClick={() => setModalPhase('details')} className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all">
+                        <FiArrowLeft />
+                      </button>
+                      <p className="font-bold text-slate-800 uppercase tracking-widest text-xs">Groq-AI Synergy Analysis</p>
+                    </div>
+
+                    {/* Score Gauge */}
+                    <div className="bg-slate-50 rounded-[2rem] p-8 flex flex-col items-center text-center border border-slate-100 shadow-inner">
+                      <div className="relative w-32 h-32 flex items-center justify-center mb-4 scale-110">
+                        <svg className="w-full h-full -rotate-90">
+                          <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-200" />
+                          <circle 
+                            cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="12" fill="transparent" 
+                            strokeDasharray={2 * Math.PI * 58} 
+                            strokeDashoffset={2 * Math.PI * 58 * (1 - (analysisResult?.matchScore || 0) / 100)} 
+                            strokeLinecap="round"
+                            className={analysisResult?.matchScore > 80 ? 'text-emerald-500' : analysisResult?.matchScore > 50 ? 'text-blue-500' : 'text-amber-500'} 
+                          />
+                        </svg>
+                        <span className="absolute text-3xl font-black text-slate-900">{analysisResult?.matchScore || 0}%</span>
+                      </div>
+                      <h4 className="text-xl font-bold text-slate-800 mt-2">Synergy Rating</h4>
+                      <p className="text-slate-500 text-[11px] mt-2 font-medium max-w-[240px]">AI comparison between your profile and this specific role.</p>
+                    </div>
+
+                    <div className="p-6 bg-slate-900 text-white rounded-3xl shadow-xl border border-white/10">
+                       <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] mb-4 text-blue-400"><FiInfo /> AI Recommendation</h4>
+                       <p className="text-sm font-medium leading-relaxed italic">"{analysisResult?.analysisReason || 'Synergy analysis complete.'}"</p>
+                       <div className="mt-6 flex items-center gap-3">
+                          <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${
+                             analysisResult?.recommendation === 'Shortlist' ? 'bg-emerald-500 text-white' :
+                             analysisResult?.recommendation === 'Review' ? 'bg-blue-500 text-white' :
+                             'bg-amber-500 text-white'
+                          }`}>{analysisResult?.recommendation || 'Analyzing'}</span>
+                       </div>
+                    </div>
+
+                    {/* Skills Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-600">Matched Traits</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {analysisResult?.matchingSkills?.map(s => (
+                            <span key={s} className="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg border border-emerald-100">{s}</span>
+                          )) || <p className="text-[10px] text-slate-400 italic">No direct matches identified.</p>}
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-600">Gaps Identified</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {analysisResult?.missingSkills?.map(s => (
+                            <span key={s} className="px-3 py-1.5 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-lg border border-amber-100">{s}</span>
+                          )) || <p className="text-[10px] text-slate-400 italic">No significant gaps found.</p>}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-slate-100">
+                      <button onClick={() => setModalPhase('apply')} className="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl flex items-center justify-center gap-3 shadow-xl hover:bg-blue-700 transition-all active:scale-95 text-base">
+                        Proceed to Apply <FiArrowRight />
+                      </button>
+                    </div>
+                </div>
              ) : (
                <div className="p-8 pb-12">
                   <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">

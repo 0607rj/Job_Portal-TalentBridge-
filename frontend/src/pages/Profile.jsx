@@ -5,13 +5,18 @@ import { authAPI } from '../services/api';
 import { 
   FiUser, FiMail, FiPhone, FiMapPin, FiBriefcase, FiGlobe, 
   FiFileText, FiSave, FiLink, FiCamera, FiPlus, FiTrash2,
-  FiLinkedin, FiGithub, FiEdit2, FiLayers, FiUsers, FiHexagon, FiZap
+  FiLinkedin, FiGithub, FiEdit2, FiLayers, FiUsers, FiHexagon, FiZap, FiExternalLink
 } from 'react-icons/fi';
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('personal');
+  const [activeTab, setActiveTab] = useState('personal'); // personal, professional, security
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
   
   const [profileData, setProfileData] = useState({
     name: '',
@@ -22,6 +27,7 @@ const Profile = () => {
     skills: '',
     location: '',
     resume: '',
+    resumeLink: '',
     linkedin: '',
     github: '',
     education: [{ school: '', degree: '', year: '' }],
@@ -47,6 +53,7 @@ const Profile = () => {
         skills: user.profile?.skills?.join(', ') || '',
         location: user.profile?.location || '',
         resume: user.profile?.resume || '',
+        resumeLink: user.profile?.resumeLink || '',
         linkedin: user.profile?.linkedin || '',
         github: user.profile?.github || '',
         education: user.profile?.education?.length > 0 ? user.profile.education : [{ school: '', degree: '', year: '' }],
@@ -67,9 +74,9 @@ const Profile = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const maxSize = 2 * 1024 * 1024; // 2MB limit
+    const maxSize = 5 * 1024 * 1024; // 5MB limit
     if (file.size > maxSize) {
-      return toast.error(`${type === 'avatar' ? 'Image' : 'File'} is too large. Max size is 2MB.`);
+      return toast.error(`${type === 'avatar' ? 'Image' : 'File'} is too large. Max size is 5MB.`);
     }
 
     if (type === 'resume' && file.type !== 'application/pdf') {
@@ -79,7 +86,10 @@ const Profile = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       setProfileData(prev => ({ ...prev, [type]: reader.result }));
-      toast.success(`${file.name} uploaded successfully.`);
+      toast.success(`${file.name} selected! Click "Save Changes" to update your profile.`, {
+        duration: 5000,
+        icon: '📄'
+      });
     };
     reader.readAsDataURL(file);
   };
@@ -104,6 +114,9 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (activeTab === 'security') {
+      return handlePasswordSubmit(e);
+    }
     setLoading(true);
     try {
       const dataToSubmit = {
@@ -133,6 +146,27 @@ const Profile = () => {
     }
   };
 
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      return toast.error('New passwords do not match');
+    }
+    setLoading(true);
+    try {
+      await authAPI.updatePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
+      toast.success('Password updated successfully!');
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setActiveTab('personal');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 lg:p-8 pt-24 font-sans text-slate-700">
       <div className="max-w-6xl mx-auto">
@@ -156,6 +190,12 @@ const Profile = () => {
                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'professional' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-900'}`}
              >
                {user?.role === 'recruiter' ? 'Company Info' : 'Resume & Experience'}
+             </button>
+             <button 
+               onClick={() => setActiveTab('security')}
+               className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'security' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-900'}`}
+             >
+               Security
              </button>
           </div>
         </div>
@@ -185,7 +225,7 @@ const Profile = () => {
                 <div className="mt-8 pt-6 border-t border-slate-100 space-y-4">
                    <div className="bg-slate-50 p-4 rounded-xl text-left border border-slate-100">
                       <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1">Requirements</p>
-                      <p className="text-[11px] text-slate-600 font-medium">Max size: 2MB | JPG, PNG</p>
+                      <p className="text-[11px] text-slate-600 font-medium">Max size: 5MB | JPG, PNG</p>
                    </div>
                    <button type="submit" disabled={loading} className="w-full py-3.5 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-md hover:bg-blue-600 transition-all flex items-center justify-center gap-2">
                       {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <><FiSave /> Save Changes</>}
@@ -259,26 +299,74 @@ const Profile = () => {
             {activeTab === 'professional' && user?.role === 'candidate' && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 
-                {/* Resume Upload */}
-                <div className="bg-slate-900 rounded-3xl p-8 text-white shadow-lg">
-                   <h3 className="text-xl font-bold mb-2">Resume / CV</h3>
-                   <p className="text-slate-400 text-xs font-semibold mb-8">Upload your resume in PDF format (Max size: 2MB).</p>
+                 {/* Resume Upload Module */}
+                <div className="bg-slate-900 rounded-3xl p-8 text-white shadow-lg border border-white/5">
+                   <div className="flex items-center justify-between mb-8">
+                     <div>
+                        <h3 className="text-xl font-bold">Resume Management</h3>
+                        <p className="text-slate-400 text-[10px] mt-1 font-bold uppercase tracking-widest leading-relaxed">System will prioritize local file over drive link for AI extraction</p>
+                     </div>
+                     <FiFileText className="text-blue-500 text-3xl opacity-50" />
+                   </div>
                    
-                   <div className="flex flex-col md:flex-row items-center gap-6">
-                      <div className="flex-1 w-full">
-                         <label htmlFor="resume-upload" className="w-full flex items-center justify-between p-5 bg-white/10 border-2 border-dashed border-white/20 rounded-2xl cursor-pointer hover:bg-white/20 hover:border-blue-500 transition-all font-bold text-sm">
+                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                      {/* Local File Upload */}
+                      <div className="space-y-4">
+                         <p className="text-xs font-bold text-slate-300">File Analysis Module</p>
+                         <label htmlFor="resume-upload" className="w-full flex items-center justify-between p-5 bg-white/5 border-2 border-dashed border-white/10 rounded-2xl cursor-pointer hover:bg-white/10 hover:border-blue-500 transition-all">
                             <div className="flex items-center gap-3">
-                               <div className="w-10 h-10 bg-blue-600/30 rounded-xl flex items-center justify-center text-blue-400"><FiFileText /></div>
-                               <span className="text-xs">{profileData.resume?.startsWith('data:') ? 'Document Loaded' : 'Select PDF File'}</span>
+                               <div className="w-10 h-10 bg-blue-600/30 rounded-xl flex items-center justify-center text-blue-400 font-bold text-xs">PDF</div>
+                               <div className="text-left">
+                                  <p className="text-xs text-white font-bold">{profileData.resume ? 'File Synced' : 'Select PDF File'}</p>
+                                  <p className="text-[9px] text-slate-400">{profileData.resume?.startsWith('data:') ? 'Awaiting Save' : 'Cloud Stored'}</p>
+                               </div>
                             </div>
-                            <div className="bg-blue-600 px-4 py-2 rounded-lg text-[10px] font-bold uppercase">Browse</div>
+                            <div className="bg-blue-600 px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-transform active:scale-90">Browse</div>
                             <input type="file" id="resume-upload" className="hidden" accept=".pdf" onChange={(e) => handleFileChange(e, 'resume')} />
                          </label>
                       </div>
+
+                      {/* Drive Link Alternative */}
+                      <div className="space-y-4">
+                         <p className="text-xs font-bold text-slate-300">Public Link / Drive</p>
+                         <div className="relative group">
+                            <FiExternalLink className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                            <input 
+                              type="url" 
+                              placeholder="e.g. Google Drive, Dropbox link" 
+                              className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold focus:bg-white/10 focus:border-blue-500 outline-none transition-all placeholder:text-white/20"
+                              value={profileData.resumeLink}
+                              onChange={(e) => setProfileData({...profileData, resumeLink: e.target.value})}
+                            />
+                         </div>
+                      </div>
+                   </div>
+
+                   <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-white/5">
                       {profileData.resume && (
-                        <a href={profileData.resume} target="_blank" rel="noreferrer" className="px-6 py-4 bg-white text-slate-900 rounded-2xl font-bold text-[11px] hover:bg-blue-600 hover:text-white transition-all shadow-md">
-                           View Resume
-                        </a>
+                        <div className="flex gap-2">
+                           <button 
+                             type="button"
+                             onClick={() => {
+                               const win = window.open();
+                               win.document.write(`<iframe src="${profileData.resume}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+                             }}
+                             className="px-6 py-4 bg-white text-slate-900 rounded-2xl font-black text-[11px] uppercase tracking-tighter hover:bg-blue-600 hover:text-white transition-all shadow-md active:scale-95"
+                           >
+                              Full View PDF
+                           </button>
+                           <button type="button" onClick={() => setProfileData(prev => ({...prev, resume: ''}))} className="px-4 py-4 bg-red-500/20 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all">
+                              <FiTrash2 size={16} />
+                           </button>
+                        </div>
+                      )}
+                      {profileData.resumeLink && (
+                         <a href={profileData.resumeLink} target="_blank" rel="noreferrer" className="px-6 py-4 bg-blue-600/20 text-blue-400 rounded-2xl font-black text-[11px] uppercase border border-blue-400/30 hover:bg-blue-600 hover:text-white transition-all">
+                            Test Web Link
+                         </a>
+                      )}
+                      {!profileData.resume && !profileData.resumeLink && (
+                         <p className="text-[10px] text-slate-500 italic">Please provide at least one resume node for talent analysis.</p>
                       )}
                    </div>
                 </div>
@@ -422,6 +510,59 @@ const Profile = () => {
                          className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl min-h-[140px] focus:bg-white focus:border-blue-600 outline-none transition-all font-semibold text-sm leading-relaxed"
                          placeholder="Briefly describe your company's mission and operations..."
                       ></textarea>
+                   </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'security' && (
+              <div className="space-y-6 animate-in fade-in duration-300 pb-12">
+                <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+                   <div className="flex items-center gap-3 mb-8 pb-6 border-b border-slate-50">
+                      <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg">
+                         <FiHexagon size={20} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-slate-900">Security Credentials</h3>
+                        <p className="text-xs text-slate-500 font-medium mt-1">Protect your account by regularly rotating your password.</p>
+                      </div>
+                   </div>
+
+                   <div className="space-y-6 max-w-xl">
+                      <div className="space-y-2 group">
+                         <label className="text-xs font-bold text-slate-500 ml-1 group-focus-within:text-blue-600 transition-colors">Current Password</label>
+                         <input type="password" required value={passwordData.currentPassword} onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                           className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-50 transition-all outline-none font-medium"
+                           placeholder="••••••••"
+                         />
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                         <div className="space-y-2 group">
+                            <label className="text-xs font-bold text-slate-500 ml-1 group-focus-within:text-blue-600 transition-colors">New Password</label>
+                            <input type="password" required value={passwordData.newPassword} onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                              className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-50 transition-all outline-none font-medium"
+                              placeholder="Minimum 6 characters"
+                            />
+                         </div>
+                         <div className="space-y-2 group">
+                            <label className="text-xs font-bold text-slate-500 ml-1 group-focus-within:text-blue-600 transition-colors">Confirm New Password</label>
+                            <input type="password" required value={passwordData.confirmPassword} onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                              className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-50 transition-all outline-none font-medium"
+                              placeholder="Match your new password"
+                            />
+                         </div>
+                      </div>
+
+                      <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100 flex gap-4 mt-6">
+                        <div className="w-10 h-10 bg-amber-100 text-amber-700 rounded-lg flex items-center justify-center shrink-0">
+                          <FiZap size={18} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-amber-900 mb-1">Security Recommendation</p>
+                          <p className="text-xs text-amber-700 font-medium leading-relaxed">Use a combination of letters, numbers, and special characters for a stronger password.</p>
+                        </div>
+                      </div>
                    </div>
                 </div>
               </div>

@@ -21,7 +21,7 @@ import Profile from './pages/Profile';
 import BrowseJobs from './pages/candidate/BrowseJobs';
 import MyApplications from './pages/candidate/MyApplications';
 import MockInterview from './pages/candidate/MockInterview';
-import ResumeBuilder from './pages/candidate/ResumeBuilder';
+
 
 // Recruiter Control Nodes
 import ManageJobs from './pages/recruiter/ManageJobs';
@@ -88,14 +88,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/candidate/resume-builder"
-              element={
-                <ProtectedRoute allowedRoles={['candidate']}>
-                  <ResumeBuilder />
-                </ProtectedRoute>
-              }
-            />
+
             <Route
               path="/candidate/interviews"
               element={

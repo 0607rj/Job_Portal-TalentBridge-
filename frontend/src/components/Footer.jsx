@@ -38,7 +38,7 @@ const Footer = () => {
           <div className="lg:col-span-2 lg:ml-auto">
             <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-8 text-blue-500">Candidate Protocol</h3>
             <ul className="space-y-4">
-              {['Browse Jobs', 'Create Account', 'Resume Builder', 'Career Resources', 'Salary Insights'].map((item) => (
+              {['Browse Jobs', 'Create Account', 'Career Resources', 'Salary Insights'].map((item) => (
                 <li key={item}>
                   <Link to={item === 'Create Account' ? '/register' : '/candidate/jobs'} className="text-slate-400 hover:text-white transition-colors font-bold text-sm flex items-center group">
                     <FiArrowRight className="mr-2 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all text-blue-500" size={14} />

@@ -2,6 +2,8 @@ import Application from '../models/Application.js';
 import Job from '../models/Job.js';
 import MockInterview from '../models/MockInterview.js';
 import mongoose from 'mongoose';
+import { matchWithJob } from '../utils/aiService.js';
+
 
 // @desc    Apply for a job
 // @route   POST /api/applications
@@ -54,6 +56,25 @@ export const applyForJob = async (req, res) => {
         changedAt: new Date()
       }]
     });
+
+    // (AI Interaction) Execute AI Talent Matching logic
+    try {
+       console.log(`[AI Interaction] Analyzing synergy between ${req.user.name} and ${job.title}...`);
+       const matchResult = await matchWithJob(req.user, job);
+       
+       application.aiMatchData = {
+         matchScore: matchResult.matchScore || 0,
+         matchingSkills: matchResult.matchingSkills || [],
+         missingSkills: matchResult.missingSkills || [],
+         recommendation: matchResult.recommendation || 'Review',
+         analysisReason: matchResult.analysisReason || 'Synergy analysis completed via AI core.'
+       };
+       
+       await application.save();
+       console.log(`[AI Success] Match Score: ${application.aiMatchData.matchScore}%`);
+    } catch (err) {
+       console.error('[AI Error] Skill matching failed:', err.message);
+    }
 
     await application.populate([
       { path: 'job', select: 'title company location jobType' },
@@ -439,5 +460,27 @@ export const getApplicationStats = async (req, res) => {
       message: 'Error fetching application statistics',
       error: error.message
     });
+  }
+};
+
+// @desc    Analyze match before applying (Pre-submission)
+// @route   POST /api/applications/analyze/:jobId
+// @access  Private (Candidate only)
+export const analyzeJobMatch = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.jobId);
+    if (!job) {
+      return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+
+    const matchResult = await matchWithJob(req.user, job);
+
+    res.status(200).json({
+      success: true,
+      data: matchResult
+    });
+  } catch (error) {
+    console.error('Pre-apply analysis error:', error);
+    res.status(500).json({ success: false, message: 'Matching analysis failed' });
   }
 };

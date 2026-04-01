@@ -153,7 +153,16 @@ const MyApplications = () => {
                    </div>
                    
                    <div className="flex items-center gap-6">
-                      <div className="flex flex-col lg:items-end">
+                      <div className="flex flex-col lg:items-end gap-2">
+                        {app.aiMatchData?.matchScore !== undefined && (
+                          <div className={`px-4 py-1.5 rounded-full border ${
+                            app.aiMatchData.matchScore >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                            app.aiMatchData.matchScore >= 50 ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                            'bg-slate-50 text-slate-700 border-slate-100'
+                          } text-[11px] font-bold flex items-center gap-2`}>
+                            ⚡ AI Match: {app.aiMatchData.matchScore}%
+                          </div>
+                        )}
                         <div className={`px-4 py-1.5 rounded-full border ${getStatusColor(app.status)} text-[11px] font-bold flex items-center gap-2`}>
                           {getStatusIcon(app.status)} {app.status}
                         </div>

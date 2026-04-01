@@ -410,15 +410,24 @@ const ManageJobs = () => {
                         value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})}
                       />
                    </div>
+                   <div className="grid grid-cols-1 gap-6 mb-6">
+                      <div>
+                         <label className="block text-sm font-bold text-slate-700 mb-2">Required Tech Stack / Skills (comma separated)</label>
+                         <textarea required placeholder="e.g. React, Node.js, MongoDB, AWS, Python..." className="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 min-h-[80px] focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-semibold text-blue-600" 
+                           value={formData.skills} onChange={(e) => setFormData({...formData, skills: e.target.value})}
+                         />
+                         <p className="text-[10px] text-slate-400 mt-1 font-medium">These skills are used by our AI Resume Analyzer to match candidates.</p>
+                      </div>
+                   </div>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                         <label className="block text-sm font-bold text-slate-700 mb-2">Skills/Requirements (comma separated)</label>
-                         <textarea required placeholder="React, Node.js, SQL, Problem Solving..." className="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 min-h-[100px] focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" 
+                         <label className="block text-sm font-bold text-slate-700 mb-2">Other Requirements (comma separated)</label>
+                         <textarea required placeholder="Bachelor's degree, 3+ years experience, Good communication..." className="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 min-h-[100px] focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" 
                            value={formData.requirements} onChange={(e) => setFormData({...formData, requirements: e.target.value})}
                          />
                       </div>
                       <div>
-                         <label className="block text-sm font-bold text-slate-700 mb-2">Responsibilities (comma separated)</label>
+                         <label className="block text-sm font-bold text-slate-700 mb-2">Key Responsibilities (comma separated)</label>
                          <textarea required placeholder="Building UI components, API integration, Code reviews..." className="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 min-h-[100px] focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" 
                            value={formData.responsibilities} onChange={(e) => setFormData({...formData, responsibilities: e.target.value})}
                          />
