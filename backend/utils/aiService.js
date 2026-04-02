@@ -4,11 +4,23 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+const getGroqClient = () => {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error('GROQ_API_KEY is missing');
+  }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  return new Groq({
+    apiKey: process.env.GROQ_API_KEY,
+  });
+};
+
+const getGeminiClient = () => {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY is missing');
+  }
+
+  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+};
 
 /**
  * [TalentBridge Intelligence Protocol]
@@ -18,6 +30,7 @@ export const extractTextFromPdf = async (base64Pdf) => {
   if (!base64Pdf || !base64Pdf.startsWith('data:application/pdf;base64,')) return "";
   
   try {
+    const genAI = getGeminiClient();
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const pdfData = base64Pdf.split(',')[1];
 
@@ -40,6 +53,7 @@ export const extractTextFromPdf = async (base64Pdf) => {
 
 export const analyzeProfile = async (profileData) => {
   try {
+    const groq = getGroqClient();
     // 1. Extract true resume text if available
     const resumeText = await extractTextFromPdf(profileData.resume);
 
@@ -94,6 +108,7 @@ export const analyzeProfile = async (profileData) => {
  */
 export const matchWithJob = async (candidateData, jobData) => {
   try {
+    const groq = getGroqClient();
     // 1. Extract true resume text if available
     const resumeText = await extractTextFromPdf(candidateData.profile?.resume);
 
