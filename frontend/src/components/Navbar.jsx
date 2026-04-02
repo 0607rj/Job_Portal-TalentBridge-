@@ -4,6 +4,7 @@ import { FiLogOut, FiMenu, FiX, FiUser, FiChevronDown, FiBell, FiSearch, FiVideo
 import { useState, useEffect, useRef } from 'react';
 import logo from '../assets/logo.png';
 import io from 'socket.io-client';
+import NotificationCenter from './NotificationCenter';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout, isCandidate, isRecruiter } = useAuth();
@@ -32,10 +33,18 @@ const Navbar = () => {
           reconnection: true,
           reconnectionAttempts: 5,
          timeout: 20000,
-         path: '/socket.io/'
+         path: '/socket.io/',
+         autoConnect: true
        });
        
-      socketRef.current.emit('register-user', userId);
+       socketRef.current.on('connect', () => {
+         console.log('Navbar socket connected:', socketRef.current.id);
+         socketRef.current.emit('register-user', userId);
+       });
+
+       socketRef.current.on('connect_error', (error) => {
+         console.error('Navbar socket connection error:', error.message);
+       });
 
        socketRef.current.on('call-notification', (data) => {
           setIncomingCall(data);
@@ -47,7 +56,10 @@ const Navbar = () => {
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (socketRef.current) socketRef.current.disconnect();
+      if (socketRef.current) {
+        socketRef.current.removeAllListeners();
+        socketRef.current.disconnect();
+      }
     };
   }, [isAuthenticated, user]);
 
@@ -207,10 +219,8 @@ const Navbar = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <button className={`${textColor} p-2 rounded-full hover:bg-slate-100/50 transition-all`}>
-                    <FiBell size={18} />
-                  </button>
-
+                  {isCandidate && <NotificationCenter />}
+                  
                   {/* User Menu */}
                   <div className="relative">
                     <button

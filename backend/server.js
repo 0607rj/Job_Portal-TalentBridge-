@@ -14,6 +14,7 @@ import authRoutes from './routes/authRoutes.js';
 import jobRoutes from './routes/jobRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
 import interviewRoutes from './routes/interviewRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 import mockInterviewRoutes from './routes/mockInterviewRoutes.js';
 
@@ -43,6 +44,9 @@ const io = new Server(server, {
   transports: ['websocket', 'polling'], // Support both, but client will favor websocket
   path: '/socket.io/'
 });
+
+// Make io instance available to controllers
+app.set('io', io);
 
 // --- Socket signaling logic ---
 io.on('connection', (socket) => {
@@ -137,6 +141,7 @@ app.use('/api/auth', authLimiter, authRoutes); // Rate-limited auth routes
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/interviews', interviewRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.use('/api/mock-interview', mockInterviewRoutes);
 

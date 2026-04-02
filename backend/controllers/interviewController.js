@@ -1,6 +1,9 @@
 import Interview from '../models/Interview.js';
 import Application from '../models/Application.js';
 import Job from '../models/Job.js';
+import Notification from '../models/Notification.js';
+import { sendMeetingStartEmail } from '../utils/emailService.js';
+import User from '../models/User.js';
 
 // @desc    Schedule an interview
 // @route   POST /api/interviews
@@ -368,6 +371,126 @@ export const cancelInterview = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error cancelling interview',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Start meeting (notify candidate)
+// @route   POST /api/interviews/:id/start
+// @access  Private (Recruiter only)
+export const startMeeting = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const recruiterId = req.user.id;
+
+    // Get io instance from app
+    const io = req.app.get('io');
+
+    const interview = await Interview.findById(id)
+      .populate('candidate', 'name email')
+      .populate('recruiter', 'name')
+      .populate('job', 'title');
+
+    if (!interview) {
+      return res.status(404).json({
+        success: false,
+        message: 'Interview not found'
+      });
+    }
+
+    // Verify recruiter owns this interview
+    if (interview.recruiter._id.toString() !== recruiterId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to start this interview'
+      });
+    }
+
+    // Update interview status
+    interview.meetingStatus = 'in_progress';
+    interview.meetingStartedAt = new Date();
+    interview.status = 'In Progress';
+    await interview.save();
+
+    const candidateId = interview.candidate._id.toString();
+    const candidateEmail = interview.candidate.email;
+    const candidateName = interview.candidate.name;
+    const recruiterName = interview.recruiter.name;
+    const jobTitle = interview.job?.title || 'Position';
+    const meetingLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/interview/${id}`;
+
+    // Create notification in database
+    const notification = await Notification.create({
+      userId: candidateId,
+      type: 'meeting_start',
+      title: '🔴 Interview Starting Now!',
+      message: `${recruiterName} is waiting for you in the interview room for ${jobTitle}`,
+      interviewId: id,
+      meetingLink,
+      recruiterName,
+      jobTitle,
+      isRead: false
+    });
+
+    // Send real-time Socket.IO notification
+    if (io) {
+      io.to(candidateId).emit('call-notification', {
+        interviewId: id,
+        recruiterName,
+        jobTitle,
+        meetingLink,
+        notificationId: notification._id
+      });
+
+      io.to(candidateId).emit('new-notification', {
+        notification: {
+          _id: notification._id,
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          interviewId: id,
+          meetingLink,
+          recruiterName,
+          jobTitle,
+          isRead: false,
+          createdAt: notification.createdAt
+        }
+      });
+    }
+
+    // Send email notification
+    try {
+      await sendMeetingStartEmail(
+        candidateEmail,
+        candidateName,
+        jobTitle,
+        recruiterName,
+        meetingLink,
+        id
+      );
+      interview.notificationSent = true;
+      await interview.save();
+    } catch (emailError) {
+      console.error('Error sending meeting start email:', emailError);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Meeting started and candidate notified',
+      interview: {
+        _id: interview._id,
+        meetingStatus: interview.meetingStatus,
+        meetingStartedAt: interview.meetingStartedAt,
+        notificationSent: interview.notificationSent
+      },
+      notification
+    });
+  } catch (error) {
+    console.error('Start meeting error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error starting meeting',
       error: error.message
     });
   }

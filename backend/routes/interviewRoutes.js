@@ -6,7 +6,8 @@ import {
   getInterviewById,
   updateInterview,
   addInterviewFeedback,
-  cancelInterview
+  cancelInterview,
+  startMeeting
 } from '../controllers/interviewController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
@@ -18,6 +19,7 @@ router.get('/my-interviews', protect, authorize('candidate'), getMyInterviews);
 // Recruiter routes
 router.post('/', protect, authorize('recruiter'), scheduleInterview);
 router.get('/recruiter-interviews', protect, authorize('recruiter'), getRecruiterInterviews);
+router.post('/:id/start', protect, authorize('recruiter'), startMeeting);
 router.put('/:id', protect, authorize('recruiter'), updateInterview);
 router.post('/:id/feedback', protect, authorize('recruiter'), addInterviewFeedback);
 router.delete('/:id', protect, authorize('recruiter'), cancelInterview);

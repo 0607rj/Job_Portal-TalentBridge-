@@ -22,26 +22,40 @@ const RecruiterDashboard = () => {
     socketRef.current = io(socketBaseUrl, {
        transports: ['websocket', 'polling'],
        reconnection: true,
-       path: '/socket.io/'
+       reconnectionAttempts: 5,
+       path: '/socket.io/',
+       autoConnect: true
+    });
+
+    socketRef.current.on('connect', () => {
+      console.log('RecruiterDashboard socket connected:', socketRef.current.id);
+    });
+
+    socketRef.current.on('connect_error', (error) => {
+      console.error('RecruiterDashboard socket connection error:', error.message);
     });
     
     return () => {
-      socketRef.current.disconnect();
+      if (socketRef.current) {
+        socketRef.current.removeAllListeners();
+        socketRef.current.disconnect();
+      }
     };
   }, []);
 
-  const startCall = (interview) => {
+  const startCall = async (interview) => {
     const interviewId = interview._id;
-    const targetUserId = interview.candidate._id || interview.candidate;
     
-    socketRef.current.emit('initiate-call', {
-      targetUserId,
-      recruiterName: user.name,
-      interviewId,
-      jobTitle: interview.job?.title || 'Web Developer'
-    });
-
-    navigate(`/interview/${interviewId}`);
+    try {
+      // Call backend API to start meeting and send notifications
+      await interviewAPI.startMeeting(interviewId);
+      
+      // Navigate to interview room
+      navigate(`/interview/${interviewId}`);
+    } catch (error) {
+      console.error('Error starting meeting:', error);
+      alert('Failed to start meeting. Please try again.');
+    }
   };
 
   const fetchDashboardData = async () => {
