@@ -82,6 +82,10 @@ const Navbar = () => {
     ? 'text-white'
     : 'text-blue-600';
 
+  const mobileMenuButtonColor = isHomePage && !scrolled
+    ? 'text-white bg-slate-900/25 hover:bg-slate-900/40 border border-white/40'
+    : 'text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200';
+
   return (
     <>
       {/* Incoming Call Overlay */}
@@ -281,7 +285,8 @@ const Navbar = () => {
             )}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`${textColor} p-2 rounded-xl hover:bg-slate-100 transition-all outline-none`}
+              className={`${mobileMenuButtonColor} p-2 rounded-xl shadow-sm transition-all outline-none`}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
             </button>
@@ -291,7 +296,7 @@ const Navbar = () => {
 
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-[73px] bg-white/95 backdrop-blur-xl z-40 animate-in slide-in-from-right duration-300">
+        <div className="lg:hidden fixed inset-0 top-[73px] bg-white z-[9999] min-h-screen animate-in slide-in-from-right duration-300">
           <div className="px-6 py-8 space-y-6">
             {isAuthenticated ? (
               <>

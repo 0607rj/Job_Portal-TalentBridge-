@@ -25,17 +25,36 @@ export const AuthProvider = ({ children }) => {
       try {
         setUser(JSON.parse(storedUser));
         setToken(storedToken);
+        // Fetch fresh user data from backend to ensure profile data is up-to-date
+        fetchFreshUserData(storedToken);
       } catch (e) {
         // Corrupted data — clear it out
         localStorage.removeItem('user');
         localStorage.removeItem('token');
+        setLoading(false);
       }
     } else if (!storedUser || storedUser === 'undefined') {
       localStorage.removeItem('user');
       localStorage.removeItem('token');
+      setLoading(false);
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
+
+  const fetchFreshUserData = async (authToken) => {
+    try {
+      const response = await authAPI.getMe();
+      if (response.data.user) {
+        setUser(response.data.user);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
+    } catch (error) {
+      console.error('Failed to fetch fresh user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (email, password) => {
     try {
@@ -108,3 +127,4 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
