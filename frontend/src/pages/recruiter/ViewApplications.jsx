@@ -13,6 +13,7 @@ const ViewApplications = ({ defaultJobId }) => {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedApp, setSelectedApp] = useState(null);
   const [feedbackMap, setFeedbackMap] = useState({});
+   const [scheduledInterviewMap, setScheduledInterviewMap] = useState({});
   const [interviewData, setInterviewData] = useState({
     title: 'Technical Interview',
     date: '',
@@ -22,6 +23,7 @@ const ViewApplications = ({ defaultJobId }) => {
 
   useEffect(() => {
     fetchJobAndApplications();
+      fetchScheduledInterviews();
   }, [jobId]);
 
   const fetchJobAndApplications = async () => {
@@ -40,6 +42,22 @@ const ViewApplications = ({ defaultJobId }) => {
     }
   };
 
+   const fetchScheduledInterviews = async () => {
+      try {
+         const resp = await interviewAPI.getRecruiterInterviews({ upcoming: true, limit: 100 });
+         const map = {};
+         (resp.data.interviews || []).forEach((interview) => {
+            const applicationId = interview.application?._id || interview.application;
+            if (applicationId) {
+               map[applicationId] = interview._id;
+            }
+         });
+         setScheduledInterviewMap(map);
+      } catch (err) {
+         console.error('Error loading scheduled interviews:', err);
+      }
+   };
+
   const handleStatusUpdate = async (appId, status) => {
     try {
       const note = feedbackMap[appId] || '';
@@ -56,16 +74,19 @@ const ViewApplications = ({ defaultJobId }) => {
     e.preventDefault();
     try {
       const scheduledDate = new Date(`${interviewData.date}T${interviewData.time}`);
-      const meetingLink = `${window.location.origin}/interview/${selectedApp._id}`;
-      
-      await interviewAPI.scheduleInterview({
+         const response = await interviewAPI.scheduleInterview({
         applicationId: selectedApp._id,
         candidateId: selectedApp.candidate._id,
         jobId: selectedApp.job._id || jobId,
         scheduledDate,
         title: interviewData.title,
-        meetingLink
+            meetingLink: ''
       });
+
+         const interviewId = response.data.interview?._id;
+         if (interviewId) {
+            setScheduledInterviewMap(prev => ({ ...prev, [selectedApp._id]: interviewId }));
+         }
 
       toast.success('Interview scheduled successfully');
       setShowScheduleModal(false);
@@ -200,7 +221,7 @@ const ViewApplications = ({ defaultJobId }) => {
                          </a>
                        )}
                        {app.status === 'Interview Scheduled' && (
-                          <Link to={`/interview/${app._id}`} className="flex items-center justify-center gap-2 px-8 py-3.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95">
+                          <Link to={`/interview/${scheduledInterviewMap[app._id] || app._id}`} className="flex items-center justify-center gap-2 px-8 py-3.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95">
                               Start Interview <FiVideo />
                           </Link>
                        )}

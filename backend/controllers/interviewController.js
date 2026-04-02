@@ -49,11 +49,14 @@ export const scheduleInterview = async (req, res) => {
       type,
       scheduledDate,
       duration,
-      meetingLink,
+      meetingLink: meetingLink || '',
       location,
       instructions,
       interviewers
     });
+
+    interview.meetingLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/interview/${interview._id}`;
+    await interview.save();
 
     // Update application status
     application.status = 'Interview Scheduled';
@@ -73,7 +76,8 @@ export const scheduleInterview = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Interview scheduled successfully',
-      interview
+      interview,
+      meetingLink: interview.meetingLink
     });
   } catch (error) {
     console.error('Schedule interview error:', error);

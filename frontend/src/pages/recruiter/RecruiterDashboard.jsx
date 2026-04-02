@@ -20,8 +20,9 @@ const RecruiterDashboard = () => {
     const socketBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api$/, '');
     
     socketRef.current = io(socketBaseUrl, {
-       transports: ['websocket'],
-       reconnection: true
+       transports: ['websocket', 'polling'],
+       reconnection: true,
+       path: '/socket.io/'
     });
     
     return () => {
@@ -30,7 +31,7 @@ const RecruiterDashboard = () => {
   }, []);
 
   const startCall = (interview) => {
-    const interviewId = interview.application._id || interview.application;
+    const interviewId = interview._id;
     const targetUserId = interview.candidate._id || interview.candidate;
     
     socketRef.current.emit('initiate-call', {

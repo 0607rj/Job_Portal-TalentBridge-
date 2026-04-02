@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { applicationAPI } from '../../services/api';
+import { applicationAPI, interviewAPI } from '../../services/api';
 import { FiClock, FiCheckCircle, FiXCircle, FiTrendingUp, FiArrowRight, FiInfo, FiTrash2, FiFileText, FiSend, FiBriefcase } from 'react-icons/fi';
 
 const MyApplications = () => {
   const [applications, setApplications] = useState([]);
+  const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
     fetchApplications();
     fetchStats();
+    fetchInterviews();
   }, []);
 
   const fetchApplications = async () => {
@@ -32,6 +34,23 @@ const MyApplications = () => {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const fetchInterviews = async () => {
+    try {
+      const resp = await interviewAPI.getMyInterviews({ upcoming: true, limit: 50 });
+      setInterviews(resp.data.interviews || []);
+    } catch (err) {
+      console.error('Error fetching interviews:', err);
+    }
+  };
+
+  const getInterviewIdForApplication = (applicationId) => {
+    const interview = interviews.find((item) => {
+      const linkedApplicationId = item.application?._id || item.application;
+      return linkedApplicationId === applicationId;
+    });
+    return interview?._id;
   };
 
   const getStatusColor = (status) => {
@@ -169,10 +188,10 @@ const MyApplications = () => {
                       </div>
 
                       <div className="flex items-center gap-2">
-                         {app.status === 'Interview Scheduled' && (
-                             <Link to={`/interview/${app._id}`} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm">
-                                Join Call
-                             </Link>
+                         {app.status === 'Interview Scheduled' && getInterviewIdForApplication(app._id) && (
+                           <Link to={`/interview/${getInterviewIdForApplication(app._id)}`} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm">
+                            Join Call
+                           </Link>
                          )}
                          <button 
                            onClick={() => handleWithdraw(app._id)}

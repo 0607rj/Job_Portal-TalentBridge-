@@ -32,6 +32,7 @@ const io = new Server(server, {
      // Allow both local development and production URLs
     origin: [
       "http://localhost:5173", 
+      "http://localhost:5174",
       "http://localhost:3000", 
       process.env.FRONTEND_URL,
       "https://job-portal-talentbridge.onrender.com"

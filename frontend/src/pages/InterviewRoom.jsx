@@ -52,11 +52,16 @@ const InterviewRoom = () => {
 
         socketRef.current.on('user-connected', (userId) => {
           console.log('Peer connected:', userId);
-          initiateCall(localStream);
+          if (user?.role === 'recruiter' && !peerRef.current) {
+            initiateCall(localStream);
+          }
         });
 
         socketRef.current.on('offer', async ({ offer }) => {
           console.log('Received offer');
+          if (peerRef.current && peerRef.current.signalingState !== 'stable') {
+            return;
+          }
           const peer = createPeer(localStream);
           peerRef.current = peer;
           await peer.setRemoteDescription(new RTCSessionDescription(offer));
@@ -74,12 +79,12 @@ const InterviewRoom = () => {
 
         socketRef.current.on('answer', async ({ answer }) => {
           console.log('Received answer');
-          if (peerRef.current) {
+          if (peerRef.current && peerRef.current.signalingState === 'have-local-offer') {
             await peerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
             // Process queued candidates
             while(candidateQueue.current.length > 0) {
               const candidate = candidateQueue.current.shift();
-              await peer.addIceCandidate(new RTCIceCandidate(candidate));
+              await peerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
             }
           }
         });

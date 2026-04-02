@@ -21,18 +21,21 @@ const Navbar = () => {
     };
     window.addEventListener('scroll', handleScroll);
 
-    if (isAuthenticated && user?._id) {
+    const userId = user?._id || user?.id;
+
+    if (isAuthenticated && userId) {
        // Clean the URL if it has /api suffix
        const socketBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api$/, '');
        
        socketRef.current = io(socketBaseUrl, {
-          transports: ['websocket'],
+         transports: ['websocket', 'polling'],
           reconnection: true,
           reconnectionAttempts: 5,
-          timeout: 20000
+         timeout: 20000,
+         path: '/socket.io/'
        });
        
-       socketRef.current.emit('register-user', user._id);
+      socketRef.current.emit('register-user', userId);
 
        socketRef.current.on('call-notification', (data) => {
           setIncomingCall(data);
