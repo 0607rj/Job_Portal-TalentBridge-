@@ -15,6 +15,7 @@ import jobRoutes from './routes/jobRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
 import interviewRoutes from './routes/interviewRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import atsRoutes from './routes/atsRoutes.js';
 
 import mockInterviewRoutes from './routes/mockInterviewRoutes.js';
 
@@ -144,6 +145,7 @@ app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/interviews', interviewRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/ats', atsRoutes); // ATS Resume Analyzer routes
 
 app.use('/api/mock-interview', mockInterviewRoutes);
 

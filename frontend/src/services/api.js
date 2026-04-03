@@ -107,3 +107,27 @@ export const mockInterviewAPI = {
   getSessionById: (id) => api.get(`mock-interview/${id}`),
   deleteSession: (id) => api.delete(`mock-interview/${id}`),
 };
+
+// ATS Resume Analyzer API
+export const atsAPI = {
+  // Analyze resume text with optional job description
+  analyzeText: (data) => api.post('ats/analyze-text', data),
+  
+  // Upload and analyze PDF resume
+  analyzeFile: (formData) => {
+    return api.post('ats/analyze', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  
+  // Get ATS report for a specific application
+  getReport: (applicationId) => api.get(`ats/report/${applicationId}`),
+  
+  // Get all ATS reports for current user
+  getMyReports: () => api.get('ats/my-reports'),
+  
+  // Reanalyze an existing application
+  reanalyze: (applicationId) => api.post(`ats/reanalyze/${applicationId}`),
+};

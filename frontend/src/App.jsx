@@ -21,6 +21,7 @@ import Profile from './pages/Profile';
 import BrowseJobs from './pages/candidate/BrowseJobs';
 import MyApplications from './pages/candidate/MyApplications';
 import MockInterview from './pages/candidate/MockInterview';
+import ATSAnalyzer from './pages/candidate/ATSAnalyzer';
 
 
 // Recruiter Control Nodes
@@ -85,6 +86,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['candidate']}>
                   <MockInterview />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/candidate/ats-analyzer"
+              element={
+                <ProtectedRoute allowedRoles={['candidate']}>
+                  <ATSAnalyzer />
                 </ProtectedRoute>
               }
             />

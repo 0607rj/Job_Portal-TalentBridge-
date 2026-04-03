@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { applicationAPI, interviewAPI, jobAPI } from '../../services/api';
-import { FiBriefcase, FiUsers, FiCalendar, FiTrendingUp, FiArrowRight, FiActivity, FiSearch, FiFileText, FiClock, FiMapPin, FiCheckCircle, FiAward } from 'react-icons/fi';
+import { FiBriefcase, FiUsers, FiCalendar, FiTrendingUp, FiArrowRight, FiActivity, FiSearch, FiFileText, FiClock, FiMapPin, FiCheckCircle, FiAward, FiTarget } from 'react-icons/fi';
 
 const CandidateDashboard = () => {
   const { user } = useAuth();
@@ -232,6 +232,20 @@ const CandidateDashboard = () => {
                </p>
                <Link to="/candidate/mock-interview" className="w-full py-4 bg-emerald-500 text-white font-bold rounded-xl text-center block text-sm shadow-xl hover:bg-emerald-600 transition-all active:scale-95">
                   Start Practice Session
+               </Link>
+            </div>
+
+            {/* ATS Resume Analyzer */}
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden group hover:scale-[1.02] transition-all">
+               <FiTarget className="absolute -right-8 -bottom-8 w-32 h-32 text-white/5 opacity-40 rotate-12 transition-transform" />
+               <h3 className="font-bold text-sm uppercase tracking-widest text-blue-100 mb-6 flex items-center gap-2">
+                  <FiTarget /> ATS Score Check
+               </h3>
+               <p className="text-xs text-blue-50 font-medium leading-relaxed mb-8 opacity-90">
+                  Get instant feedback on your resume's compatibility with ATS systems. Analyze with or without a job description.
+               </p>
+               <Link to="/candidate/ats-analyzer" className="w-full py-4 bg-white text-blue-600 font-bold rounded-xl text-center block text-sm shadow-xl hover:bg-blue-50 transition-all active:scale-95">
+                  Analyze My Resume
                </Link>
             </div>
 

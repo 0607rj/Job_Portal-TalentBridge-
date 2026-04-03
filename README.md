@@ -13,6 +13,7 @@ A MERN stack job portal web application with role-based authentication for candi
 - 📝 Apply for jobs with custom cover letters
 - 📊 Track application status seamlessly
 - 📅 View scheduled interviews
+- 🤖 **ATS Resume Analyzer** - Get instant feedback on your resume with ATS scoring
 - 💡 AI Mock Interview practice module to prepare for technical assessments
 - 📹 Join high-definition WebRTC video interview rooms directly from the dashboard
 
@@ -21,6 +22,7 @@ A MERN stack job portal web application with role-based authentication for candi
 - 📋 Post and manage job listings rapidly
 - 👥 View and manage applications through an optimized pipeline
 - ✅ Shortlist candidates and track hiring statuses
+- 🤖 **ATS Resume Analyzer** - Automatic resume analysis with match scores for better screening
 - 📅 Schedule interviews with automated notifications
 - 📹 Initiate and conduct secure WebRTC video calls directly with candidates
 - 📝 Add interview feedback
@@ -198,6 +200,13 @@ The frontend will run on `http://localhost:5173`
 - `PUT /api/applications/:id/status` - Update application status (Recruiter)
 - `DELETE /api/applications/:id` - Withdraw application (Candidate)
 
+### ATS Resume Analyzer
+- `POST /api/ats/analyze-text` - Analyze resume text with optional job description
+- `POST /api/ats/analyze` - Analyze resume from uploaded PDF
+- `GET /api/ats/report/:applicationId` - Get ATS report for application
+- `GET /api/ats/my-reports` - Get all ATS reports for current user
+- `POST /api/ats/reanalyze/:applicationId` - Reanalyze existing application
+
 ### Interviews
 - `POST /api/interviews` - Schedule interview (Recruiter)
 - `GET /api/interviews/my-interviews` - Get candidate interviews
@@ -273,7 +282,8 @@ npm run preview  # Preview production build
 
 ## Future Enhancements
 - **Smart Job Matching**: AI-based job recommendations
-- **Candidate Screening**: Automated initial screening
+- **Advanced ATS Analytics**: Industry benchmarks and comparative analysis
+- **Resume Builder**: Interactive resume creation tool
 
 ## Contributing
 
