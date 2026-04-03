@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import logo from '../assets/logo.png';
 import io from 'socket.io-client';
 import NotificationCenter from './NotificationCenter';
+import api from '../services/api';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout, isCandidate, isRecruiter } = useAuth();
@@ -14,7 +15,19 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [incomingCall, setIncomingCall] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(60);
   const socketRef = useRef();
+  const timeoutRef = useRef();
+  const intervalRef = useRef();
+
+  // Request browser notification permission
+  useEffect(() => {
+    if (isAuthenticated && isCandidate && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
+  }, [isAuthenticated, isCandidate]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,9 +61,46 @@ const Navbar = () => {
 
        socketRef.current.on('call-notification', (data) => {
           setIncomingCall(data);
+          setTimeLeft(60); // Reset timer to 60 seconds
+          
+          // Show browser notification
+          if ('Notification' in window && Notification.permission === 'granted') {
+            const notification = new Notification('🔴 Interview Call', {
+              body: `${data.recruiterName} is calling for ${data.jobTitle}`,
+              icon: '/logo.png',
+              tag: 'interview-call',
+              requireInteraction: true,
+              vibrate: [200, 100, 200]
+            });
+            
+            // Click notification to navigate to interview
+            notification.onclick = () => {
+              window.focus();
+              navigate(`/interview/${data.interviewId}`);
+              notification.close();
+            };
+          }
+          
           // Play notification sound
           const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
           audio.play().catch(e => console.log('Audio blocked by browser policy'));
+          
+          // Start countdown timer
+          intervalRef.current = setInterval(() => {
+            setTimeLeft(prev => {
+              if (prev <= 1) {
+                clearInterval(intervalRef.current);
+                handleCallTimeout(data.interviewId);
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+          
+          // Auto-timeout after 60 seconds
+          timeoutRef.current = setTimeout(() => {
+            handleCallTimeout(data.interviewId);
+          }, 60000);
        });
     }
 
@@ -60,17 +110,63 @@ const Navbar = () => {
         socketRef.current.removeAllListeners();
         socketRef.current.disconnect();
       }
+      // Cleanup timers
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [isAuthenticated, user]);
 
-  const handleAcceptCall = () => {
+  const handleAcceptCall = async () => {
     const interviewId = incomingCall.interviewId;
+    
+    // Clear timers
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    
+    // Call backend to mark as accepted
+    try {
+      await api.post(`/interviews/${interviewId}/accept-call`);
+    } catch (error) {
+      console.error('Error accepting call:', error);
+    }
+    
     setIncomingCall(null);
+    setTimeLeft(60);
     navigate(`/interview/${interviewId}`);
   };
 
-  const handleDeclineCall = () => {
+  const handleDeclineCall = async () => {
+    const interviewId = incomingCall.interviewId;
+    
+    // Clear timers
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    
+    // Call backend to mark as declined
+    try {
+      await api.post(`/interviews/${interviewId}/decline-call`);
+    } catch (error) {
+      console.error('Error declining call:', error);
+    }
+    
     setIncomingCall(null);
+    setTimeLeft(60);
+  };
+
+  const handleCallTimeout = async (interviewId) => {
+    // Clear timers
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    
+    // Call backend to mark as timed out
+    try {
+      await api.post(`/interviews/${interviewId}/call-timeout`);
+    } catch (error) {
+      console.error('Error handling timeout:', error);
+    }
+    
+    setIncomingCall(null);
+    setTimeLeft(60);
   };
 
   const handleLogout = () => {
@@ -125,9 +221,46 @@ const Navbar = () => {
               <h2 className="text-3xl font-black text-slate-900 mb-2 font-sans tracking-tight">
                 {incomingCall.recruiterName}
               </h2>
-              <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mb-8">
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mb-4">
                  Interview Requested: <span className="text-blue-600">{incomingCall.jobTitle}</span>
               </p>
+              
+              {/* Countdown Timer */}
+              <div className="mb-6 flex items-center justify-center gap-3">
+                <div className="relative w-16 h-16">
+                  <svg className="w-16 h-16 transform -rotate-90">
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r="28"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                      className="text-slate-200"
+                    />
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r="28"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeDasharray={`${2 * Math.PI * 28}`}
+                      strokeDashoffset={`${2 * Math.PI * 28 * (1 - timeLeft / 60)}`}
+                      className={`${timeLeft <= 10 ? 'text-rose-500' : 'text-blue-500'} transition-all duration-1000`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className={`text-lg font-black ${timeLeft <= 10 ? 'text-rose-600' : 'text-blue-600'}`}>
+                      {timeLeft}
+                    </span>
+                  </div>
+                </div>
+                <p className={`text-xs font-semibold ${timeLeft <= 10 ? 'text-rose-600 animate-pulse' : 'text-slate-400'}`}>
+                  {timeLeft <= 10 ? 'Call expiring soon!' : 'seconds remaining'}
+                </p>
+              </div>
 
               <div className="flex gap-4">
                  <button 

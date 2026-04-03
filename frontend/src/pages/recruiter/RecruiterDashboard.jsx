@@ -12,6 +12,8 @@ const RecruiterDashboard = () => {
   const [upcomingInterviews, setUpcomingInterviews] = useState([]);
   const [recentApplications, setRecentApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [callStatus, setCallStatus] = useState({}); // Track call status per interview
+  const [statusMessages, setStatusMessages] = useState({}); // Track status messages
   const socketRef = useRef();
 
   useEffect(() => {
@@ -29,10 +31,40 @@ const RecruiterDashboard = () => {
 
     socketRef.current.on('connect', () => {
       console.log('RecruiterDashboard socket connected:', socketRef.current.id);
+      // Register user in their private room for direct notifications
+      if (user?._id || user?.id) {
+        socketRef.current.emit('register-user', user._id || user.id);
+      }
     });
 
     socketRef.current.on('connect_error', (error) => {
       console.error('RecruiterDashboard socket connection error:', error.message);
+    });
+
+    // Listen for call acceptance
+    socketRef.current.on('call-accepted', ({ interviewId, candidateName, message }) => {
+      console.log('Call accepted:', interviewId, candidateName);
+      setCallStatus(prev => ({ ...prev, [interviewId]: 'accepted' }));
+      setStatusMessages(prev => ({ ...prev, [interviewId]: `${candidateName} is joining...` }));
+      
+      // Auto-navigate to interview room after short delay
+      setTimeout(() => {
+        navigate(`/interview/${interviewId}`);
+      }, 1500);
+    });
+
+    // Listen for call decline
+    socketRef.current.on('call-declined', ({ interviewId, candidateName, message }) => {
+      console.log('Call declined:', interviewId, candidateName);
+      setCallStatus(prev => ({ ...prev, [interviewId]: 'declined' }));
+      setStatusMessages(prev => ({ ...prev, [interviewId]: `${candidateName} declined the call` }));
+    });
+
+    // Listen for call timeout
+    socketRef.current.on('call-timeout', ({ interviewId, candidateName, message }) => {
+      console.log('Call timeout:', interviewId, candidateName);
+      setCallStatus(prev => ({ ...prev, [interviewId]: 'timeout' }));
+      setStatusMessages(prev => ({ ...prev, [interviewId]: `${candidateName} did not answer` }));
     });
     
     return () => {
@@ -47,13 +79,19 @@ const RecruiterDashboard = () => {
     const interviewId = interview._id;
     
     try {
+      // Set status to calling
+      setCallStatus(prev => ({ ...prev, [interviewId]: 'calling' }));
+      setStatusMessages(prev => ({ ...prev, [interviewId]: 'Calling candidate...' }));
+      
       // Call backend API to start meeting and send notifications
       await interviewAPI.startMeeting(interviewId);
       
-      // Navigate to interview room
-      navigate(`/interview/${interviewId}`);
+      // Don't navigate immediately - wait for acceptance or timeout
+      // Navigation will happen on 'call-accepted' event
     } catch (error) {
       console.error('Error starting meeting:', error);
+      setCallStatus(prev => ({ ...prev, [interviewId]: 'error' }));
+      setStatusMessages(prev => ({ ...prev, [interviewId]: 'Failed to start call' }));
       alert('Failed to start meeting. Please try again.');
     }
   };
@@ -253,11 +291,39 @@ const RecruiterDashboard = () => {
                                <FiClock className="text-slate-400" /> {new Date(interview.scheduledDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </p>
                          </div>
+                         
+                         {/* Call Status Display */}
+                         {statusMessages[interview._id] && (
+                           <div className={`mb-3 px-3 py-2 rounded-lg text-xs font-bold text-center ${
+                             callStatus[interview._id] === 'calling' ? 'bg-blue-50 text-blue-600 animate-pulse' :
+                             callStatus[interview._id] === 'accepted' ? 'bg-emerald-50 text-emerald-600' :
+                             callStatus[interview._id] === 'declined' ? 'bg-rose-50 text-rose-600' :
+                             callStatus[interview._id] === 'timeout' ? 'bg-amber-50 text-amber-600' :
+                             'bg-slate-50 text-slate-600'
+                           }`}>
+                             {statusMessages[interview._id]}
+                           </div>
+                         )}
+                         
                          <button 
                            onClick={() => startCall(interview)}
-                           className="w-full py-3 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 active:scale-95"
+                           disabled={callStatus[interview._id] === 'calling'}
+                           className={`w-full py-3 text-white text-xs font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95 ${
+                             callStatus[interview._id] === 'calling' 
+                               ? 'bg-blue-400 cursor-wait' 
+                               : 'bg-blue-600 hover:bg-blue-700'
+                           }`}
                          >
-                            <FiVideo /> Start Video Interview
+                            {callStatus[interview._id] === 'calling' ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Calling...
+                              </>
+                            ) : (
+                              <>
+                                <FiVideo /> Start Video Interview
+                              </>
+                            )}
                          </button>
                       </div>
                     ))}

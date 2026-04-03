@@ -7,7 +7,10 @@ import {
   updateInterview,
   addInterviewFeedback,
   cancelInterview,
-  startMeeting
+  startMeeting,
+  acceptCall,
+  declineCall,
+  handleCallTimeout
 } from '../controllers/interviewController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
@@ -15,6 +18,9 @@ const router = express.Router();
 
 // Candidate routes
 router.get('/my-interviews', protect, authorize('candidate'), getMyInterviews);
+router.post('/:id/accept-call', protect, authorize('candidate'), acceptCall);
+router.post('/:id/decline-call', protect, authorize('candidate'), declineCall);
+router.post('/:id/call-timeout', protect, authorize('candidate'), handleCallTimeout);
 
 // Recruiter routes
 router.post('/', protect, authorize('recruiter'), scheduleInterview);

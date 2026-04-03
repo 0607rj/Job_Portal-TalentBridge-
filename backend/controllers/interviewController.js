@@ -407,10 +407,12 @@ export const startMeeting = async (req, res) => {
       });
     }
 
-    // Update interview status
+    // Update interview status and call tracking
     interview.meetingStatus = 'in_progress';
     interview.meetingStartedAt = new Date();
     interview.status = 'In Progress';
+    interview.callInitiatedAt = new Date();
+    interview.callStatus = 'pending';
     await interview.save();
 
     const candidateId = interview.candidate._id.toString();
@@ -433,14 +435,17 @@ export const startMeeting = async (req, res) => {
       isRead: false
     });
 
-    // Send real-time Socket.IO notification
+    // Send real-time Socket.IO notification with timeout info
     if (io) {
+      const expiresAt = new Date(Date.now() + 60000); // 60 seconds from now
       io.to(candidateId).emit('call-notification', {
         interviewId: id,
         recruiterName,
         jobTitle,
         meetingLink,
-        notificationId: notification._id
+        notificationId: notification._id,
+        expiresAt: expiresAt.toISOString(),
+        callTimeout: 60000 // milliseconds
       });
 
       io.to(candidateId).emit('new-notification', {
@@ -491,6 +496,207 @@ export const startMeeting = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error starting meeting',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Accept incoming call
+// @route   POST /api/interviews/:id/accept-call
+// @access  Private (Candidate only)
+export const acceptCall = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const candidateId = req.user.id;
+
+    // Get io instance from app
+    const io = req.app.get('io');
+
+    const interview = await Interview.findById(id)
+      .populate('recruiter', 'name')
+      .populate('candidate', 'name');
+
+    if (!interview) {
+      return res.status(404).json({
+        success: false,
+        message: 'Interview not found'
+      });
+    }
+
+    // Verify candidate owns this interview
+    if (interview.candidate._id.toString() !== candidateId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to accept this call'
+      });
+    }
+
+    // Update call status
+    interview.callStatus = 'accepted';
+    interview.callEndedAt = new Date();
+    await interview.save();
+
+    // Notify recruiter that call was accepted
+    if (io) {
+      io.to(interview.recruiter._id.toString()).emit('call-accepted', {
+        interviewId: id,
+        candidateName: interview.candidate.name,
+        message: 'Candidate is joining the interview'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Call accepted',
+      interview: {
+        _id: interview._id,
+        callStatus: interview.callStatus
+      }
+    });
+  } catch (error) {
+    console.error('Accept call error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error accepting call',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Decline incoming call
+// @route   POST /api/interviews/:id/decline-call
+// @access  Private (Candidate only)
+export const declineCall = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const candidateId = req.user.id;
+
+    // Get io instance from app
+    const io = req.app.get('io');
+
+    const interview = await Interview.findById(id)
+      .populate('recruiter', 'name')
+      .populate('candidate', 'name');
+
+    if (!interview) {
+      return res.status(404).json({
+        success: false,
+        message: 'Interview not found'
+      });
+    }
+
+    // Verify candidate owns this interview
+    if (interview.candidate._id.toString() !== candidateId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to decline this call'
+      });
+    }
+
+    // Update call status
+    interview.callStatus = 'declined';
+    interview.callEndedAt = new Date();
+    interview.meetingStatus = 'scheduled';
+    interview.status = 'Scheduled';
+    await interview.save();
+
+    // Notify recruiter that call was declined
+    if (io) {
+      io.to(interview.recruiter._id.toString()).emit('call-declined', {
+        interviewId: id,
+        candidateName: interview.candidate.name,
+        message: 'Candidate declined the call'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Call declined',
+      interview: {
+        _id: interview._id,
+        callStatus: interview.callStatus
+      }
+    });
+  } catch (error) {
+    console.error('Decline call error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error declining call',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Handle call timeout
+// @route   POST /api/interviews/:id/call-timeout
+// @access  Private (Candidate only)
+export const handleCallTimeout = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const candidateId = req.user.id;
+
+    // Get io instance from app
+    const io = req.app.get('io');
+
+    const interview = await Interview.findById(id)
+      .populate('recruiter', 'name')
+      .populate('candidate', 'name');
+
+    if (!interview) {
+      return res.status(404).json({
+        success: false,
+        message: 'Interview not found'
+      });
+    }
+
+    // Verify candidate owns this interview
+    if (interview.candidate._id.toString() !== candidateId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized'
+      });
+    }
+
+    // Only update if still pending (prevent race conditions)
+    if (interview.callStatus === 'pending') {
+      interview.callStatus = 'timed_out';
+      interview.callEndedAt = new Date();
+      interview.meetingStatus = 'scheduled';
+      interview.status = 'Scheduled';
+      await interview.save();
+
+      // Notify recruiter that call timed out
+      if (io) {
+        io.to(interview.recruiter._id.toString()).emit('call-timeout', {
+          interviewId: id,
+          candidateName: interview.candidate.name,
+          message: 'Candidate did not answer the call'
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Call timed out',
+        interview: {
+          _id: interview._id,
+          callStatus: interview.callStatus
+        }
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        message: 'Call already handled',
+        interview: {
+          _id: interview._id,
+          callStatus: interview.callStatus
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Call timeout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error handling timeout',
       error: error.message
     });
   }

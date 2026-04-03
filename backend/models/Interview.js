@@ -91,6 +91,18 @@ const interviewSchema = new mongoose.Schema({
   reminderSent: {
     type: Boolean,
     default: false
+  },
+  // Call tracking fields
+  callInitiatedAt: {
+    type: Date
+  },
+  callStatus: {
+    type: String,
+    enum: ['pending', 'accepted', 'declined', 'missed', 'timed_out'],
+    default: null
+  },
+  callEndedAt: {
+    type: Date
   }
 }, {
   timestamps: true
