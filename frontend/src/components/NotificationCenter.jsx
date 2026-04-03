@@ -3,6 +3,7 @@ import { Bell, X, Check, Trash2, CheckCheck } from 'lucide-react';
 import { notificationAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
+import { getSocketBaseUrl } from '../utils/urlConfig';
 
 const NotificationCenter = () => {
   const [notifications, setNotifications] = useState([]);
@@ -13,7 +14,7 @@ const NotificationCenter = () => {
   const navigate = useNavigate();
   const socketRef = useRef(null);
 
-  const socketBaseUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+  const socketBaseUrl = getSocketBaseUrl();
   const userId = JSON.parse(localStorage.getItem('user'))?._id;
 
   useEffect(() => {

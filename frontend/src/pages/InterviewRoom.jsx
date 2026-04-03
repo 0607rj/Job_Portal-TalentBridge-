@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { interviewAPI } from '../services/api';
 import { FiMic, FiVideo, FiMonitor, FiLogOut, FiShield, FiUser, FiFileText, FiActivity, FiMessageSquare, FiMicOff, FiVideoOff } from 'react-icons/fi';
 import io from 'socket.io-client';
+import { getSocketBaseUrl } from '../utils/urlConfig';
 
 const InterviewRoom = () => {
   const { interviewId } = useParams();
@@ -34,8 +35,7 @@ const InterviewRoom = () => {
     };
     fetchData();
 
-    // Initialize Socket with cleaned URL
-    const socketBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api$/, '');
+    const socketBaseUrl = getSocketBaseUrl();
     socketRef.current = io(socketBaseUrl, {
       transports: ['websocket', 'polling'],
       reconnection: true,

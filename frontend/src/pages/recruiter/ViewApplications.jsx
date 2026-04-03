@@ -14,6 +14,8 @@ const ViewApplications = ({ defaultJobId }) => {
   const [selectedApp, setSelectedApp] = useState(null);
   const [feedbackMap, setFeedbackMap] = useState({});
    const [scheduledInterviewMap, setScheduledInterviewMap] = useState({});
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  const [existingInterviewId, setExistingInterviewId] = useState(null);
   const [interviewData, setInterviewData] = useState({
     title: 'Technical Interview',
     date: '',
@@ -74,26 +76,88 @@ const ViewApplications = ({ defaultJobId }) => {
     e.preventDefault();
     try {
       const scheduledDate = new Date(`${interviewData.date}T${interviewData.time}`);
+      
+      if (isRescheduling && existingInterviewId) {
+        // Reschedule existing interview
+        const response = await interviewAPI.updateInterview(existingInterviewId, {
+          scheduledDate,
+          title: interviewData.title,
+          location: interviewData.location
+        });
+        
+        toast.success('Interview rescheduled successfully! Candidate notified.');
+        setShowScheduleModal(false);
+        setIsRescheduling(false);
+        setExistingInterviewId(null);
+        fetchJobAndApplications();
+        fetchScheduledInterviews();
+      } else {
+        // Schedule new interview
          const response = await interviewAPI.scheduleInterview({
-        applicationId: selectedApp._id,
-        candidateId: selectedApp.candidate._id,
-        jobId: selectedApp.job._id || jobId,
-        scheduledDate,
-        title: interviewData.title,
-            meetingLink: ''
-      });
+          applicationId: selectedApp._id,
+          candidateId: selectedApp.candidate._id,
+          jobId: selectedApp.job._id || jobId,
+          scheduledDate,
+          title: interviewData.title,
+              meetingLink: ''
+        });
 
          const interviewId = response.data.interview?._id;
          if (interviewId) {
             setScheduledInterviewMap(prev => ({ ...prev, [selectedApp._id]: interviewId }));
          }
 
-      toast.success('Interview scheduled successfully');
-      setShowScheduleModal(false);
-      fetchJobAndApplications();
+        toast.success('Interview scheduled successfully');
+        setShowScheduleModal(false);
+        fetchJobAndApplications();
+        fetchScheduledInterviews();
+      }
     } catch (err) {
-      toast.error('Error scheduling interview');
+      toast.error(isRescheduling ? 'Error rescheduling interview' : 'Error scheduling interview');
+      console.error(err);
     }
+  };
+  
+  const handleOpenScheduleModal = async (app) => {
+    setSelectedApp(app);
+    const interviewId = scheduledInterviewMap[app._id];
+    
+    if (interviewId) {
+      // Already scheduled - fetch existing interview data for rescheduling
+      try {
+        const response = await interviewAPI.getInterviewById(interviewId);
+        const interview = response.data.interview;
+        
+        const scheduledDate = new Date(interview.scheduledDate);
+        const dateStr = scheduledDate.toISOString().split('T')[0];
+        const timeStr = scheduledDate.toTimeString().slice(0, 5);
+        
+        setInterviewData({
+          title: interview.title || 'Technical Interview',
+          date: dateStr,
+          time: timeStr,
+          location: interview.location || 'Video Call (TalentBridge)',
+        });
+        setIsRescheduling(true);
+        setExistingInterviewId(interviewId);
+      } catch (err) {
+        console.error('Error fetching interview:', err);
+        toast.error('Could not load interview details');
+        return;
+      }
+    } else {
+      // New interview - reset form
+      setInterviewData({
+        title: 'Technical Interview',
+        date: '',
+        time: '',
+        location: 'Video Call (TalentBridge)',
+      });
+      setIsRescheduling(false);
+      setExistingInterviewId(null);
+    }
+    
+    setShowScheduleModal(true);
   };
 
   if (loading) return (
@@ -244,9 +308,9 @@ const ViewApplications = ({ defaultJobId }) => {
                           </button>
                           
                           <button 
-                            onClick={() => { setSelectedApp(app); setShowScheduleModal(true); }}
+                            onClick={() => handleOpenScheduleModal(app)}
                             className={`p-3 rounded-xl border flex items-center justify-center transition-all ${app.status === 'Interview Scheduled' ? 'bg-indigo-50 border-indigo-300 text-indigo-700 shadow-inner' : 'bg-white border-slate-200 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200'}`}
-                            title="Schedule Interview"
+                            title={scheduledInterviewMap[app._id] ? "Reschedule Interview" : "Schedule Interview"}
                           >
                              <FiCalendar size={18} />
                           </button>
@@ -318,7 +382,9 @@ const ViewApplications = ({ defaultJobId }) => {
                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 border border-blue-100">
                     <FiCalendar size={24} />
                  </div>
-                 <h2 className="text-xl font-bold text-slate-900">Schedule Interview</h2>
+                 <h2 className="text-xl font-bold text-slate-900">
+                   {isRescheduling ? 'Reschedule Interview' : 'Schedule Interview'}
+                 </h2>
               </div>
               
               <form onSubmit={handleScheduleSubmit} className="space-y-6">
@@ -343,7 +409,7 @@ const ViewApplications = ({ defaultJobId }) => {
                     </div>
                  </div>
                  <button type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl text-sm shadow-lg hover:bg-blue-700 transition-all active:scale-95 mt-4">
-                    Schedule and Send Notification
+                    {isRescheduling ? 'Update and Notify Candidate' : 'Schedule and Send Notification'}
                  </button>
               </form>
            </div>

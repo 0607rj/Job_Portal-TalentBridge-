@@ -1,7 +1,7 @@
 import axios from 'axios';
+import { getApiBaseUrl } from '../utils/urlConfig';
 
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_BASE_URL = isLocalhost ? 'http://localhost:5000/api' : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
+const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,

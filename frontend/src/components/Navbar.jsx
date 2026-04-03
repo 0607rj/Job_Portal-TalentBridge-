@@ -6,6 +6,7 @@ import logo from '../assets/logo.png';
 import io from 'socket.io-client';
 import NotificationCenter from './NotificationCenter';
 import api from '../services/api';
+import { getSocketBaseUrl } from '../utils/urlConfig';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout, isCandidate, isRecruiter } = useAuth();
@@ -37,9 +38,10 @@ const Navbar = () => {
 
     const userId = user?._id || user?.id;
 
-    if (isAuthenticated && userId) {
-       // Clean the URL if it has /api suffix
-       const socketBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api$/, '');
+    if (isAuthenticated && userId && !socketRef.current) {
+       const socketBaseUrl = getSocketBaseUrl();
+       
+       console.log('🔌 Creating Navbar socket connection for user:', userId);
        
        socketRef.current = io(socketBaseUrl, {
          transports: ['websocket', 'polling'],
@@ -51,15 +53,23 @@ const Navbar = () => {
        });
        
        socketRef.current.on('connect', () => {
-         console.log('Navbar socket connected:', socketRef.current.id);
+         console.log('✅ Navbar socket connected:', socketRef.current.id);
+         console.log('👤 Current user:', user?.name, 'Role:', user?.role, 'ID:', userId);
          socketRef.current.emit('register-user', userId);
+         console.log('📝 Registered user in socket room:', userId);
+         
+         // Check notification permission
+         if ('Notification' in window) {
+           console.log('🔔 Notification permission:', Notification.permission);
+         }
        });
 
        socketRef.current.on('connect_error', (error) => {
-         console.error('Navbar socket connection error:', error.message);
+         console.error('❌ Navbar socket connection error:', error.message);
        });
 
        socketRef.current.on('call-notification', (data) => {
+          console.log('🔔 CALL NOTIFICATION RECEIVED:', data);
           setIncomingCall(data);
           setTimeLeft(60); // Reset timer to 60 seconds
           
@@ -101,6 +111,36 @@ const Navbar = () => {
           timeoutRef.current = setTimeout(() => {
             handleCallTimeout(data.interviewId);
           }, 60000);
+       });
+
+       // Listen for new interview scheduled notifications
+       socketRef.current.on('new-notification', (data) => {
+          if (data.notification?.type === 'interview_scheduled') {
+            console.log('📅 New interview scheduled - notifying dashboard');
+            // Dispatch event for dashboard to refresh
+            window.dispatchEvent(new Event('interview-scheduled'));
+          }
+          
+          if (data.notification?.type === 'interview_rescheduled') {
+            console.log('📅 Interview rescheduled - notifying dashboard');
+            // Show toast notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification('📅 Interview Rescheduled', {
+                body: data.notification.message,
+                icon: '/logo.png',
+                tag: 'interview-rescheduled'
+              });
+            }
+            // Refresh dashboard data
+            window.dispatchEvent(new Event('interview-scheduled'));
+          }
+       });
+       
+       // Listen for interview reschedule events
+       socketRef.current.on('interview-rescheduled', (data) => {
+          console.log('📅 Interview rescheduled event received:', data);
+          // Refresh dashboard
+          window.dispatchEvent(new Event('interview-scheduled'));
        });
     }
 

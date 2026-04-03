@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { jobAPI, interviewAPI, applicationAPI } from '../../services/api';
 import { FiBriefcase, FiUsers, FiCalendar, FiTrendingUp, FiPlus, FiArrowRight, FiPieChart, FiActivity, FiVideo, FiClock, FiCheckSquare } from 'react-icons/fi';
 import io from 'socket.io-client';
+import { getSocketBaseUrl } from '../../utils/urlConfig';
 
 const RecruiterDashboard = () => {
   const { user } = useAuth();
@@ -19,7 +20,7 @@ const RecruiterDashboard = () => {
   useEffect(() => {
     fetchDashboardData();
     
-    const socketBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api$/, '');
+    const socketBaseUrl = getSocketBaseUrl();
     
     socketRef.current = io(socketBaseUrl, {
        transports: ['websocket', 'polling'],

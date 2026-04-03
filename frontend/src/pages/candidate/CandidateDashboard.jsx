@@ -14,6 +14,19 @@ const CandidateDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    
+    // Listen for new interview notifications from Navbar socket
+    // The Navbar component already handles socket connection, we just need to refresh data
+    const handleNotification = () => {
+      console.log('Interview notification received - refreshing dashboard');
+      fetchDashboardData();
+    };
+    
+    window.addEventListener('interview-scheduled', handleNotification);
+    
+    return () => {
+      window.removeEventListener('interview-scheduled', handleNotification);
+    };
   }, []);
 
   const fetchDashboardData = async () => {

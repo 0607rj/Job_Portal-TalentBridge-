@@ -5,6 +5,25 @@ import Notification from '../models/Notification.js';
 import { sendMeetingStartEmail } from '../utils/emailService.js';
 import User from '../models/User.js';
 
+const getFrontendBaseUrl = (req) => {
+  const configuredUrl = (process.env.PUBLIC_FRONTEND_URL || process.env.FRONTEND_URL || '').trim();
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/+$/, '');
+  }
+
+  const requestOrigin = req.get('origin');
+  if (requestOrigin) {
+    return requestOrigin.replace(/\/+$/, '');
+  }
+
+  return '';
+};
+
+const buildInterviewLink = (req, interviewId) => {
+  const baseUrl = getFrontendBaseUrl(req);
+  return baseUrl ? `${baseUrl}/interview/${interviewId}` : `/interview/${interviewId}`;
+};
+
 // @desc    Schedule an interview
 // @route   POST /api/interviews
 // @access  Private (Recruiter only)
@@ -58,7 +77,7 @@ export const scheduleInterview = async (req, res) => {
       interviewers
     });
 
-    interview.meetingLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/interview/${interview._id}`;
+    interview.meetingLink = buildInterviewLink(req, interview._id);
     await interview.save();
 
     // Update application status
@@ -75,6 +94,39 @@ export const scheduleInterview = async (req, res) => {
       { path: 'candidate', select: 'name email phone' },
       { path: 'job', select: 'title company' }
     ]);
+
+    // Create notification for candidate
+    const io = req.app.get('io');
+    const candidateId = application.candidate._id.toString();
+    
+    try {
+      const notification = await Notification.create({
+        userId: candidateId,
+        type: 'interview_scheduled',
+        title: '📅 Interview Scheduled!',
+        message: `Your interview for ${application.job.title} has been scheduled for ${new Date(scheduledDate).toLocaleString()}`,
+        interviewId: interview._id,
+        isRead: false
+      });
+
+      // Send real-time notification to candidate
+      if (io) {
+        io.to(candidateId).emit('new-notification', {
+          notification: {
+            _id: notification._id,
+            type: notification.type,
+            title: notification.title,
+            message: notification.message,
+            interviewId: interview._id,
+            isRead: false,
+            createdAt: notification.createdAt
+          }
+        });
+      }
+    } catch (notifError) {
+      console.error('Error creating notification:', notifError);
+      // Don't fail the whole request if notification fails
+    }
 
     res.status(201).json({
       success: true,
@@ -255,8 +307,11 @@ export const updateInterview = async (req, res) => {
       });
     }
 
+    const oldDate = interview.scheduledDate;
+    const isRescheduling = req.body.scheduledDate && req.body.scheduledDate !== interview.scheduledDate.toISOString();
+    
     // If rescheduling
-    if (req.body.scheduledDate && req.body.scheduledDate !== interview.scheduledDate) {
+    if (isRescheduling) {
       req.body.status = 'Rescheduled';
     }
 
@@ -269,8 +324,46 @@ export const updateInterview = async (req, res) => {
       }
     ).populate([
       { path: 'candidate', select: 'name email' },
+      { path: 'recruiter', select: 'name' },
       { path: 'job', select: 'title company' }
     ]);
+
+    // Send notification if rescheduled
+    if (isRescheduling) {
+      const io = req.app.get('io');
+      const candidateId = interview.candidate._id.toString();
+      
+      const notification = await Notification.create({
+        userId: candidateId,
+        type: 'interview_rescheduled',
+        title: '📅 Interview Rescheduled',
+        message: `Your interview for ${interview.job.title} has been rescheduled to ${new Date(interview.scheduledDate).toLocaleString()}`,
+        interviewId: interview._id,
+        isRead: false
+      });
+
+      // Send real-time notification
+      if (io) {
+        io.to(candidateId).emit('new-notification', {
+          notification: {
+            _id: notification._id,
+            type: notification.type,
+            title: notification.title,
+            message: notification.message,
+            interviewId: interview._id,
+            isRead: false,
+            createdAt: notification.createdAt
+          }
+        });
+        
+        io.to(candidateId).emit('interview-rescheduled', {
+          interviewId: interview._id,
+          oldDate: oldDate,
+          newDate: interview.scheduledDate,
+          jobTitle: interview.job.title
+        });
+      }
+    }
 
     res.status(200).json({
       success: true,
@@ -420,7 +513,7 @@ export const startMeeting = async (req, res) => {
     const candidateName = interview.candidate.name;
     const recruiterName = interview.recruiter.name;
     const jobTitle = interview.job?.title || 'Position';
-    const meetingLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/interview/${id}`;
+    const meetingLink = buildInterviewLink(req, id);
 
     // Create notification in database
     const notification = await Notification.create({

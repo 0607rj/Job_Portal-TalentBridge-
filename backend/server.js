@@ -27,17 +27,27 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
+const parseAllowedOrigins = () => {
+  const environmentOrigins = [process.env.FRONTEND_URL, process.env.FRONTEND_URLS]
+    .filter(Boolean)
+    .flatMap((value) => value.split(','))
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return [...new Set([
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:3000',
+    ...environmentOrigins
+  ])];
+};
+
+const allowedOrigins = parseAllowedOrigins();
+
 // Initialize Socket.io with optimized settings for Render
 const io = new Server(server, {
   cors: {
-     // Allow both local development and production URLs
-    origin: [
-      "http://localhost:5173", 
-      "http://localhost:5174",
-      "http://localhost:3000", 
-      process.env.FRONTEND_URL,
-      "https://job-portal-talentbridge.onrender.com"
-    ].filter(Boolean),
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true
   },
@@ -109,14 +119,6 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests. Please try again in 15 minutes.' }
 });
-
-// Dynamic CORS for multiple dev ports
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:3000'
-].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
