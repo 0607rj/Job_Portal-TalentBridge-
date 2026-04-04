@@ -83,6 +83,19 @@ io.on('connection', (socket) => {
     socket.join(roomId);
     socket.roomId = roomId; // Store roomId on socket for disconnect cleanup
     console.log(`User ${socket.id} joined room ${roomId}`);
+    
+    // Get list of existing users in the room (excluding current user)
+    const clients = io.sockets.adapter.rooms.get(roomId);
+    const participantCount = clients ? clients.size : 0;
+    
+    // Tell the joining user if someone is already there
+    socket.emit('joined-room', { 
+      roomId, 
+      participantCount,
+      otherParticipants: Array.from(clients || []).filter(id => id !== socket.id)
+    });
+    
+    // Tell existing users that someone new joined
     socket.to(roomId).emit('user-connected', socket.id);
   });
 

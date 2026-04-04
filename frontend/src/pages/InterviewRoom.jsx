@@ -76,8 +76,20 @@ const InterviewRoom = () => {
         };
         joinRoom();
 
+        // Handle successful join and check for existing participants
+        socketRef.current.on('joined-room', ({ participantCount }) => {
+           console.log('Successfully joined room. Participants:', participantCount);
+           // If we joined and there's already someone there (participantCount > 1) 
+           // and we are the recruiter, initiate the call.
+           if (participantCount > 1 && user?.role === 'recruiter' && !peerRef.current) {
+              console.log('Participant already in room. Proactively initiating call...');
+              initiateCall(localStream);
+           }
+        });
+
         socketRef.current.on('user-connected', (userId) => {
-          console.log('Peer connected:', userId);
+          console.log('New peer connected:', userId);
+          // If a new user joins and we are the recruiter, initiate the call.
           if (user?.role === 'recruiter' && !peerRef.current) {
             initiateCall(localStream);
           }
