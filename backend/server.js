@@ -162,6 +162,15 @@ app.use('/api/ats', atsRoutes); // ATS Resume Analyzer routes
 
 app.use('/api/mock-interview', mockInterviewRoutes);
 
+// --- Health Check / Ping Endpoint for Cron Jobs ---
+app.get('/api/ping', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Server is active',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // --- Global Error Handler ---
 app.use((err, req, res, next) => {
   console.error('[Server Error]', err.stack);
