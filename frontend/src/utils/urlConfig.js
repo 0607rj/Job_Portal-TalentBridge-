@@ -3,15 +3,19 @@ const normalizeUrl = (value) => value.replace(/\/+$/, '');
 const isLocalhostHost = (host) => host === 'localhost' || host === '127.0.0.1';
 
 export const getApiBaseUrl = () => {
+  // 1. Detect if we are running in a local browser context
+  if (typeof window !== 'undefined' && isLocalhostHost(window.location.hostname)) {
+    return 'http://localhost:5000/api';
+  }
+
+  // 2. Fallback to explicitly configured URL (production)
   const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
   if (configuredApiUrl) {
     return normalizeUrl(configuredApiUrl);
   }
 
+  // 3. Fallback to derived API endpoint based on origin
   if (typeof window !== 'undefined') {
-    if (isLocalhostHost(window.location.hostname)) {
-      return 'http://localhost:5000/api';
-    }
     return `${normalizeUrl(window.location.origin)}/api`;
   }
 
@@ -19,6 +23,12 @@ export const getApiBaseUrl = () => {
 };
 
 export const getSocketBaseUrl = () => {
+  // 1. Detect if we are running in a local browser context
+  if (typeof window !== 'undefined' && isLocalhostHost(window.location.hostname)) {
+    return 'http://localhost:5000';
+  }
+
+  // 2. Fallback to explicitly configured URL (production)
   const configuredSocketUrl = import.meta.env.VITE_SOCKET_URL?.trim();
   if (configuredSocketUrl) {
     return normalizeUrl(configuredSocketUrl).replace(/\/api$/, '');
@@ -29,10 +39,8 @@ export const getSocketBaseUrl = () => {
     return normalizeUrl(configuredApiUrl).replace(/\/api$/, '');
   }
 
+  // 3. Fallback to derived origin
   if (typeof window !== 'undefined') {
-    if (isLocalhostHost(window.location.hostname)) {
-      return 'http://localhost:5000';
-    }
     return normalizeUrl(window.location.origin);
   }
 

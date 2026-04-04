@@ -4,6 +4,7 @@ import Job from '../models/Job.js';
 import User from '../models/User.js';
 import { analyzeResume } from '../utils/atsAnalyzer.js';
 import fs from 'fs';
+import mongoose from 'mongoose';
 
 /**
  * Helper function to parse PDF - handles errors gracefully
@@ -38,6 +39,21 @@ export const analyzeResumeController = async (req, res) => {
   try {
     const { resumeText, jobDescription, applicationId, jobId } = req.body;
     const userId = req.user.id;
+
+    // Validate ObjectIds if provided
+    if (applicationId && !mongoose.Types.ObjectId.isValid(applicationId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid application ID format'
+      });
+    }
+
+    if (jobId && !mongoose.Types.ObjectId.isValid(jobId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid job ID format'
+      });
+    }
 
     let finalResumeText = resumeText;
     let jobDescriptionText = jobDescription || '';
@@ -138,7 +154,9 @@ export const analyzeResumeController = async (req, res) => {
     console.log('Has job description:', !!jobDescriptionText);
 
     // Perform ATS analysis
+    console.log('Running analysis logic...');
     const analysisResult = analyzeResume(finalResumeText, jobDescriptionText || null);
+    console.log('Analysis complete. Score:', analysisResult.atsScore);
 
     // Save ATS report to database
     const atsReport = await ATSReport.create({
@@ -171,11 +189,21 @@ export const analyzeResumeController = async (req, res) => {
     res.status(200).json(analysisResult);
 
   } catch (error) {
-    console.error('ATS Analysis Error:', error);
+    console.error('CRITICAL: ATS Analysis Error');
+    console.error('Stack Trace:', error.stack);
+    
+    // Provide more specific error messages for database issues
+    let errorMessage = 'Failed to analyze resume';
+    if (error.name === 'ValidationError') {
+      errorMessage = `Validation Error: ${Object.values(error.errors).map(e => e.message).join(', ')}`;
+    } else if (error.name === 'CastError') {
+      errorMessage = 'Database format error. Please check your inputs.';
+    }
+
     res.status(500).json({
       success: false,
-      message: 'Failed to analyze resume',
-      error: error.message
+      message: errorMessage,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
