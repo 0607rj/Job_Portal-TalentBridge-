@@ -222,19 +222,19 @@ const Navbar = () => {
     : 'bg-white/80 backdrop-blur-xl shadow-sm border-b border-slate-200/50';
 
   const textColor = isHomePage && !scrolled
-    ? 'text-white'
+    ? 'text-slate-900'
     : 'text-slate-600';
 
   const activeTextColor = isHomePage && !scrolled
-    ? 'text-white font-bold'
+    ? 'text-blue-600 font-bold'
     : 'text-blue-600 font-bold';
 
   const logoColor = isHomePage && !scrolled
-    ? 'text-white'
+    ? 'text-slate-900'
     : 'text-blue-600';
 
   const mobileMenuButtonColor = isHomePage && !scrolled
-    ? 'text-white bg-slate-900/25 hover:bg-slate-900/40 border border-white/40'
+    ? 'text-slate-900 bg-white/50 backdrop-blur-sm border border-slate-200 shadow-sm'
     : 'text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200';
 
   return (
@@ -327,8 +327,8 @@ const Navbar = () => {
       )}
 
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${navbarBg} ${scrolled ? 'py-3' : 'py-5'}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-14">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className={`group flex items-center gap-2.5 outline-none`}>

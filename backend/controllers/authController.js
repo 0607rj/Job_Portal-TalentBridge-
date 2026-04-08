@@ -203,14 +203,14 @@ export const updateProfile = async (req, res) => {
     if (user.role === 'candidate' && profile) {
       // Validate resume size (if provided as base64)
       if (profile.resume && profile.resume.startsWith('data:')) {
-         if (profile.resume.length > 7.5 * 1024 * 1024) {
-           return res.status(400).json({
-             success: false,
-             message: 'Resume file is too large. Maximum size allowed is 5MB.'
-           });
-         }
+        if (profile.resume.length > 7.5 * 1024 * 1024) {
+          return res.status(400).json({
+            success: false,
+            message: 'Resume file is too large. Maximum size allowed is 5MB.'
+          });
+        }
       }
-      
+
       // Initialize profile object if it doesn't exist
       if (!user.profile) {
         user.profile = {};
@@ -220,25 +220,23 @@ export const updateProfile = async (req, res) => {
       Object.keys(profile).forEach(key => {
         user.profile[key] = profile[key];
       });
-      
+
       user.markModified('profile');
 
       // (AI Extraction Enhancement) 
       // Perform background profile/resume analysis for future skill matching
       try {
-        console.log(`[AI Interaction] Triggering skill extraction for Candidate ${user.name}...`);
         const extracted = await analyzeProfile(user.profile);
-        
+
         user.profile.aiAnalysis = {
           extractedSkills: extracted.extractedSkills || [],
           summary: extracted.summary || user.profile.bio,
           isProcessed: true,
           lastProcessed: new Date()
         };
-        
-        console.log(`[AI Interaction] Extraction completed for Candidate: ${user.name}`);
+
       } catch (aiErr) {
-         console.warn(`[AI Warning] Extraction failed for candidate:`, aiErr.message);
+        // AI extraction is an enhancement, we don't block profile updates on its failure
       }
     }
 
@@ -274,7 +272,7 @@ export const updateProfile = async (req, res) => {
 export const updatePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    
+
     // Find user by ID and include password field for comparison
     const user = await User.findById(req.user.id).select('+password');
     if (!user) {
@@ -336,9 +334,6 @@ export const forgotPassword = async (req, res) => {
     // Use updateOne to avoid triggering the pre-save password hash hook
     await User.updateOne({ email }, { otp, otpExpires });
 
-    console.log(`[OTP] Generated for ${email}: ${otp}`); // Debug log
-    console.log(`[SMTP] Attempting to send via: ${process.env.GMAIL_USER}`);
-
     const transporter = getTransporter();
     await transporter.sendMail({
       from: `"TalentBridge Security" <${process.env.GMAIL_USER}>`,
@@ -357,7 +352,6 @@ export const forgotPassword = async (req, res) => {
       `
     });
 
-    console.log(`[SMTP] Email dispatched successfully to ${email}`);
     res.json({ success: true, message: 'Password reset code sent to your email.' });
   } catch (error) {
     console.error('[Forgot Password Error]', error.message);
