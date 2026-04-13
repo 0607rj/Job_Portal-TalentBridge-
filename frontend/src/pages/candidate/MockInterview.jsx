@@ -217,17 +217,14 @@ const MockInterview = () => {
 
   /* ---- SETUP SCREEN ---- */
   if (phase === 'setup') return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 pt-24 pb-20 px-4">
+    <div className="pb-20">
       <div className="max-w-5xl mx-auto">
 
-        {/* Header */}
+        {/* Header - Simplified */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full text-xs font-bold text-blue-600 uppercase tracking-widest mb-6">
             <FiCpu size={12} /> AI Interviewer — Talent Bridge
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight mb-3">
-            Mock Interview
-          </h1>
           <p className="text-slate-500 font-medium max-w-lg mx-auto">
             A real AI interviewer will ask you 5 questions, score each answer, and give you a final performance summary.
           </p>

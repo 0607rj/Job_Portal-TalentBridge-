@@ -374,20 +374,26 @@ const Navbar = () => {
                   )}
 
                   {isRecruiter && (
-                    <>
+                    <div className="flex items-center gap-1 bg-slate-100/50 p-1 rounded-xl">
                       <Link
                         to="/recruiter/jobs"
-                        className={`${location.pathname === '/recruiter/jobs' ? activeTextColor : textColor} px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-100/50 transition-all`}
+                        className={`${location.pathname === '/recruiter/jobs' ? activeTextColor : textColor} px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:shadow-sm transition-all`}
                       >
-                        My Posts
+                        Inventory
                       </Link>
                       <Link
                         to="/recruiter/applications"
-                        className={`${location.pathname === '/recruiter/applications' ? activeTextColor : textColor} px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-100/50 transition-all`}
+                        className={`${location.pathname === '/recruiter/applications' ? activeTextColor : textColor} px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:shadow-sm transition-all`}
                       >
                         Candidates
                       </Link>
-                    </>
+                      <Link
+                        to="/recruiter/jobs/new"
+                        className="ml-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-900 transition-all shadow-md shadow-blue-500/10 active:scale-95"
+                      >
+                        Post Role
+                      </Link>
+                    </div>
                   )}
                 </div>
 

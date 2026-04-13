@@ -95,14 +95,10 @@ const BrowseJobs = () => {
 
 
   return (
-    <div className="min-h-screen bg-[#fcfcfd] p-4 lg:p-8 pt-24">
-      {/* Search & Header Section */}
-      <div className="max-w-7xl mx-auto mb-12">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Browse Open Roles</h1>
-            <p className="text-slate-500 font-medium">Find and apply for your next career opportunity.</p>
-          </div>
+    <div>
+      {/* Header Info Section - Kept stats but removed redundant title */}
+      <div className="mb-12">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-end gap-6 mb-8">
           {stats && (
             <div className="flex gap-4">
               <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
@@ -197,7 +193,7 @@ const BrowseJobs = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto">
+      <div>
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 text-slate-700">
              <div className="w-10 h-10 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin mb-4"></div>

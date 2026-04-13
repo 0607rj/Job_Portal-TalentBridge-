@@ -26,6 +26,7 @@ import ATSAnalyzer from './pages/candidate/ATSAnalyzer';
 
 // Recruiter Control Nodes
 import ManageJobs from './pages/recruiter/ManageJobs';
+import PostJob from './pages/recruiter/PostJob';
 import ViewApplications from './pages/recruiter/ViewApplications';
 import InterviewRoom from './pages/InterviewRoom';
 
@@ -128,8 +129,15 @@ function App() {
               path="/recruiter/jobs/new"
               element={
                 <ProtectedRoute allowedRoles={['recruiter']}>
-                   {/* Points to ManageJobs as it contains the New Job modal */}
-                  <ManageJobs />
+                  <PostJob />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/recruiter/jobs/edit/:jobId"
+              element={
+                <ProtectedRoute allowedRoles={['recruiter']}>
+                  <PostJob />
                 </ProtectedRoute>
               }
             />

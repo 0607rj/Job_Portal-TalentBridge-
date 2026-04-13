@@ -118,14 +118,10 @@ const MyApplications = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 lg:p-8 pt-24">
+    <div>
       <div className="max-w-7xl mx-auto">
         {/* Header and Stats */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">My Applications</h1>
-            <p className="text-slate-500 font-medium">Track your job applications and status updates.</p>
-          </div>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-end gap-6 mb-8">
           
           {stats && (
             <div className="flex flex-wrap gap-4">

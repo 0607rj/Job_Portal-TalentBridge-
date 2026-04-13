@@ -168,15 +168,11 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 lg:p-8 pt-24 font-sans text-slate-700">
+    <div>
       <div className="max-w-6xl mx-auto">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">My Profile</h1>
-            <p className="text-slate-500 font-medium text-sm">Update your account information and preferences.</p>
-          </div>
+        <div className="flex flex-col md:flex-row justify-end items-start md:items-center mb-12 gap-6">
           
           <div className="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
              <button 
