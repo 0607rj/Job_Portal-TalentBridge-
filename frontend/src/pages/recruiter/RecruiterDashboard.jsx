@@ -219,7 +219,6 @@ const RecruiterDashboard = () => {
 
              {/* Candidate Activity List */}
              <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
-">
                 <div className="px-10 py-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/10">
                    <h3 className="text-xl font-bold text-slate-900 tracking-tight">Recent Pipeline</h3>
                    <Link to="/recruiter/applications" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-all uppercase tracking-widest border-b border-transparent hover:border-blue-600">Full Pipeline</Link>
