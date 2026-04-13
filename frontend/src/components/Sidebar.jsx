@@ -39,20 +39,28 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   return (
     <aside className={`fixed left-0 top-0 h-screen transition-all duration-300 z-50 bg-white border-r border-slate-200 p-6 flex flex-col ${collapsed ? 'w-24' : 'w-72'}`}>
       <div className="flex items-center justify-between mb-10 px-2">
-        {!collapsed && (
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-xl ${user?.role === 'recruiter' ? 'bg-slate-900 shadow-slate-900/20' : 'bg-blue-600 shadow-blue-600/20'}`}>
-              <FiBriefcase size={22} />
-            </div>
+        <Link to="/" className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-xl shrink-0 transition-transform hover:scale-105 active:scale-95 ${user?.role === 'recruiter' ? 'bg-slate-900 shadow-slate-900/20' : 'bg-blue-600 shadow-blue-600/20'}`}>
+            <FiBriefcase size={22} />
+          </div>
+          {!collapsed && (
             <span className="font-black text-xl text-slate-900 tracking-tighter">
               TalentBridge
             </span>
-          </div>
+          )}
+        </Link>
+        {!collapsed && (
+          <button onClick={() => setCollapsed(!collapsed)} className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400 hover:text-blue-600 transition-all shadow-sm">
+            <FiChevronLeft />
+          </button>
         )}
-        <button onClick={() => setCollapsed(!collapsed)} className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400 hover:text-blue-600 transition-all shadow-sm">
-          {collapsed ? <FiChevronRight /> : <FiChevronLeft />}
-        </button>
       </div>
+
+      {collapsed && (
+        <button onClick={() => setCollapsed(!collapsed)} className="mb-8 mx-auto p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400 hover:text-blue-600 transition-all shadow-sm">
+          <FiChevronRight />
+        </button>
+      )}
 
       <nav className="flex-grow space-y-2">
         {links.map((link) => {
